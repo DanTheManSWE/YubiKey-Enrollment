@@ -1,0 +1,10 @@
+﻿<Configuration>
+    <Ykman>C:\Program Files\Yubico\YubiKey Manager\ykman.exe</Ykman>
+    <SignerCert></SignerCert>
+    <EncryptionKey>wPEyMOn83mB@2Fg$</EncryptionKey>
+    <CertTemplate>YubiKey</CertTemplate>
+    <WriteToAD>false</WriteToAD>
+    <ADAttribute>houseIdentifier</ADAttribute>
+    <DeleteOTP>false</DeleteOTP>
+    <DeleteCachedSC>false</DeleteCachedSC>
+</Configuration>
