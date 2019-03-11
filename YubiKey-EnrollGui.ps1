@@ -185,6 +185,7 @@ if(!(Test-Path $PSScriptRoot\Logs)){
 $script:logFile = "$PSScriptRoot\Logs\YubiKey_" + [string](get-date -Format yyyyMMdd) + ".log"
 
 function New-LogEntry($entry, $first){
+    $separator = "********************************"
     if ($first){
         $logDate = Get-Date -Format F
         $separator | Out-File $logFile -Append
@@ -371,7 +372,7 @@ function Enroll-YubiKey($user, $userName){
     Set-YubiImage Default
     Clear-YubiInfoBox
     $ykman = $config.Configuration.Ykman
-    $separator = "********************************"
+
     
     $templateName = $config.Configuration.CertTemplate
     $signerCert = $config.Configuration.SignerCert
