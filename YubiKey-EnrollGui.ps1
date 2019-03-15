@@ -4,6 +4,7 @@
 #>
 Add-Type -AssemblyName PresentationFramework
 Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName Microsoft.VisualBasic
 
 if (Test-Path "$PSScriptRoot\config.xml"){
 	$configFile = "$PSScriptRoot\config.xml"
@@ -114,7 +115,6 @@ $logTextBox.Font                 = 'Consolas,10'
 $logTextBox.ScrollBars           = "Vertical"
 
 $userOutputLabel                 = New-Object system.Windows.Forms.Label
-#$userOutputLabel.text            = "hkuaeg"
 $userOutputLabel.AutoSize        = $true
 $userOutputLabel.width           = 25
 $userOutputLabel.height          = 10
@@ -122,7 +122,6 @@ $userOutputLabel.location        = New-Object System.Drawing.Point(54,18)
 $userOutputLabel.Font            = 'Microsoft Sans Serif,10'
 
 $serialOutputLabel               = New-Object system.Windows.Forms.Label
-#$serialOutputLabel.text          = "9020554"
 $serialOutputLabel.AutoSize      = $true
 $serialOutputLabel.width         = 25
 $serialOutputLabel.height        = 10
@@ -130,7 +129,6 @@ $serialOutputLabel.location      = New-Object System.Drawing.Point(54,38)
 $serialOutputLabel.Font          = 'Microsoft Sans Serif,10'
 
 $pinOutputLabel                  = New-Object system.Windows.Forms.Label
-#$pinOutputLabel.text             = "001234"
 $pinOutputLabel.AutoSize         = $true
 $pinOutputLabel.width            = 25
 $pinOutputLabel.height           = 10
@@ -138,7 +136,6 @@ $pinOutputLabel.location         = New-Object System.Drawing.Point(54,58)
 $pinOutputLabel.Font             = 'Microsoft Sans Serif,10'
 
 $pukOutputLabel                  = New-Object system.Windows.Forms.Label
-#$pukOutputLabel.text             = "12345678"
 $pukOutputLabel.AutoSize         = $true
 $pukOutputLabel.width            = 25
 $pukOutputLabel.height           = 10
@@ -146,7 +143,6 @@ $pukOutputLabel.location         = New-Object System.Drawing.Point(54,78)
 $pukOutputLabel.Font             = 'Microsoft Sans Serif,10'
 
 $certOutputLabel                  = New-Object system.Windows.Forms.Label
-##$certOutputLabel.text             = "84D8FE59445D9D347628F6722DB22537BCE9232E"
 $certOutputLabel.AutoSize         = $true
 $certOutputLabel.width            = 25
 $certOutputLabel.height           = 10
@@ -173,14 +169,7 @@ $userNameTextBox1.Add_KeyDown({
     }
 })
 
-
 #Write your logic code here
-##Create Log-folder if needed
-if(!(Test-Path $PSScriptRoot\Logs)){
-	Write-Host "Creating Log dir"
-	New-Item $PSScriptRoot\Logs -Type Directory
-}
-
 
 $script:logFile = "$PSScriptRoot\Logs\YubiKey_" + [string](get-date -Format yyyyMMdd) + ".log"
 
@@ -193,6 +182,27 @@ function New-LogEntry($entry, $first){
     }
     $entry | Out-File $logFile -Append
 }
+
+function Get-SavedCredential(){
+    $CurrentUser = [Environment]::UserName
+	$CredsFile = $PSScriptRoot + "\Keys\" + $CurrentUser + "_Key.txt"
+	$FileExists = Test-Path $CredsFile
+		if  ($FileExists -eq $false) {
+            $EncKey = [Microsoft.VisualBasic.Interaction]::InputBox('Enter encryption key', 'Enryption key', "")
+            $SecureEncKey = ConvertTo-SecureString $EncKey.ToString() -AsPlainText -Force
+            $SecureEncKey | ConvertFrom-SecureString | Out-File $CredsFile
+            $password = get-content $CredsFile | convertto-securestring
+			$Credential = new-object -typename System.Management.Automation.PSCredential -argumentlist "dummy",$password            
+
+		}
+		else{
+			Write-Host 'Using your stored credential file' -ForegroundColor Green
+			$password = get-content $CredsFile | convertto-securestring
+			$Credential = new-object -typename System.Management.Automation.PSCredential -argumentlist "dummy",$password
+		}
+		return $Credential
+}
+
 
 function Set-YubiImage($color)
 {
@@ -237,19 +247,6 @@ function Clear-YubiInfoBox(){
 }
 
 
-##Loading Active Directory Module
-if (!(Get-Module ActiveDirectory)){
-    $logTextBox.Text = "Loading Active Directory Module" | Out-String
-    Import-Module ActiveDirectory
-    if (!(Get-Module ActiveDirectory)){
-        $logTextBox.Text += "Active Directory Module not loaded!" | Out-String
-        Set-YubiImage Red
-    }else{
-        $logTextBox.Text += "Active Directory Module loaded" | Out-String
-    }
-}
-
-$key = Set-Key ($config.Configuration.EncryptionKey).ToString()
 
 function Get-YubiKeyInfo(){
     $adInfo = @()
@@ -264,7 +261,7 @@ function Get-YubiKeyInfo(){
 		return
     }
     $adInfo += $user | select -ExpandProperty $adAttribute
-#    Write-Host $adInfo[0]
+
 
     if ($user){
         if($adInfo[0] -match "(YubiKey: )(.+)"){
@@ -272,7 +269,6 @@ function Get-YubiKeyInfo(){
             $encryptedYubi = $Matches[2]
             $decryptedYubi = Get-EncryptedData -data $encryptedYubi -key $key
             $yubiInfo = $decryptedYubi -split ";"
-            #$yubiInfo
             $userOutputLabel.Text = $userName
             $serialOutputLabel.Text = $yubiInfo[0]
             $pinOutputLabel.Text = $yubiInfo[1]
@@ -329,7 +325,7 @@ function Check-ADUser(){
         return
     }
     $adInfo = @()
-    $adInfo += $user | select -ExpandProperty $adAttribute
+    $adInfo += $user | Select-Object -ExpandProperty $adAttribute
 
      if($adInfo[0] -match "(YubiKey: )(.+)"){
         $yubiInfo = Get-YubiKeyInfo
@@ -360,12 +356,7 @@ function Check-ADUser(){
         Enroll-YubiKey $user $userName
      }
 
-
-
-
-
 }
-
 
 
 function Enroll-YubiKey($user, $userName){
@@ -526,7 +517,35 @@ function Enroll-YubiKey($user, $userName){
     New-LogEntry $adInfo $false
 }
 
+##Loading Active Directory Module
+if (!(Get-Module ActiveDirectory)){
+    $logTextBox.Text = "Loading Active Directory Module" | Out-String
+    Import-Module ActiveDirectory
+    if (!(Get-Module ActiveDirectory)){
+        $logTextBox.Text += "Active Directory Module not loaded!" | Out-String
+        Set-YubiImage Red
+    }else{
+        $logTextBox.Text += "Active Directory Module loaded" | Out-String
+    }
+}
 
+
+##Create Log-folder if needed
+if(!(Test-Path $PSScriptRoot\Logs)){
+	Write-Host "Creating Log dir"
+	New-Item $PSScriptRoot\Logs -Type Directory | Out-Null
+}
+
+##Create Keys-folder if needed
+if(!(Test-Path $PSScriptRoot\Keys)){
+	Write-Host "Creating Keys dir"
+	New-Item $PSScriptRoot\Keys -Type Directory | Out-Null
+}
+
+$Credentials = Get-SavedCredential
+if($Credentials){
+    $key = Set-Key ($Credentials.GetNetworkCredential().Password).ToString()
+}
 
 
 
