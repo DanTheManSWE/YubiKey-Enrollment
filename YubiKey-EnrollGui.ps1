@@ -188,7 +188,12 @@ function Get-SavedCredential(){
 	$CredsFile = $PSScriptRoot + "\Keys\" + $CurrentUser + "_Key.txt"
 	$FileExists = Test-Path $CredsFile
 		if  ($FileExists -eq $false) {
-            $EncKey = [Microsoft.VisualBasic.Interaction]::InputBox('Enter encryption key', 'Enryption key', "")
+            $EncKey = [Microsoft.VisualBasic.Interaction]::InputBox('Enter a 16-32 character encryption key', 'Enryption key', "")
+            if (($EncKey.Length -lt 16) -or ($EncKey.Length -gt 32)){
+                Set-YubiImage Red
+                $logTextBox.Text = "Invalid encryption key, must be between 16 and 32 characters!"
+                return
+            }
             $SecureEncKey = ConvertTo-SecureString $EncKey.ToString() -AsPlainText -Force
             $SecureEncKey | ConvertFrom-SecureString | Out-File $CredsFile
             $password = get-content $CredsFile | convertto-securestring
