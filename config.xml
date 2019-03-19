@@ -6,4 +6,5 @@
     <ADAttribute>houseIdentifier</ADAttribute>
     <DeleteOTP>false</DeleteOTP>
     <DeleteCachedSC>false</DeleteCachedSC>
+    <WriteLog>true</WriteLog>
 </Configuration>

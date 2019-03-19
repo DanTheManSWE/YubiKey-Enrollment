@@ -160,12 +160,12 @@ $logLabel.Font                   = 'Microsoft Sans Serif,10'
 $Form.controls.AddRange(@($userNameTextBox1,$enrollButton,$userNameLabel,$logButton,$PictureBox1,$Groupbox1,$logTextBox,$logLabel))
 $Groupbox1.controls.AddRange(@($certOutputLabel,$certLabel,$serialLabel,$pinLabel,$pukLabel,$userLabel,$userOutputLabel,$serialOutputLabel,$pinOutputLabel,$pukOutputLabel))
 
-$enrollButton.Add_Click({Check-ADUser})
+$enrollButton.Add_Click({Confirm-ADUser})
 $logButton.Add_Click({Get-YubiKeyInfo})
 
 $userNameTextBox1.Add_KeyDown({
     if ($_.KeyCode -eq "Enter"){
-        Check-ADUser
+        Confirm-ADUser
     }
 })
 
@@ -174,13 +174,17 @@ $userNameTextBox1.Add_KeyDown({
 $script:logFile = "$PSScriptRoot\Logs\YubiKey_" + [string](get-date -Format yyyyMMdd) + ".log"
 
 function New-LogEntry($entry, $first){
-    $separator = "********************************"
-    if ($first){
-        $logDate = Get-Date -Format F
-        $separator | Out-File $logFile -Append
-        $logDate | Out-File $logFile -append
+    [Boolean]$writeLog = [System.Convert]::ToBoolean($config.Configuration.WriteLog)
+    if($writeLog){
+        $separator = "********************************"
+        if ($first){
+            $logDate = Get-Date -Format F
+            $separator | Out-File $logFile -Append
+            $logDate | Out-File $logFile -append
+        }
+        $entry | Out-File $logFile -Append
     }
-    $entry | Out-File $logFile -Append
+
 }
 
 function Get-SavedCredential(){
@@ -265,7 +269,7 @@ function Get-YubiKeyInfo(){
         Set-YubiImage Red
 		return
     }
-    $adInfo += $user | select -ExpandProperty $adAttribute
+    $adInfo += $user | Select-Object -ExpandProperty $adAttribute
 
 
     if ($user){
@@ -312,7 +316,7 @@ function Get-YubiKeyInfo(){
 }
 
 
-function Check-ADUser(){
+function Confirm-ADUser(){
     $logTextBox.Text = ""
     $userName = $userNameTextBox1.Text
     Clear-YubiInfoBox
@@ -352,7 +356,7 @@ function Check-ADUser(){
                 Write-Host "Enrolling User"
                 $logTextBox.Text += "`n" | out-string
                 $logTextBox.Text += "`n" | out-string
-                Enroll-YubiKey $user $userName
+                Write-YubiKey $user $userName
             }
             'No'
             {
@@ -367,13 +371,13 @@ function Check-ADUser(){
      
      
      }else{
-        Enroll-YubiKey $user $userName
+        Write-YubiKey $user $userName
      }
 
 }
 
 
-function Enroll-YubiKey($user, $userName){
+function Write-YubiKey($user, $userName){
     Set-YubiImage Default
     Clear-YubiInfoBox
     $ykman = $config.Configuration.Ykman
