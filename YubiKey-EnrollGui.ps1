@@ -185,7 +185,7 @@ function New-LogEntry($entry, $first){
 
 function Get-SavedCredential(){
     $CurrentUser = [Environment]::UserName
-	$CredsFile = $PSScriptRoot + "\Keys\" + $CurrentUser + "_Key.txt"
+	$script:CredsFile = $PSScriptRoot + "\Keys\" + $CurrentUser + "_Key.txt"
 	$FileExists = Test-Path $CredsFile
 		if  ($FileExists -eq $false) {
             $EncKey = [Microsoft.VisualBasic.Interaction]::InputBox('Enter a 16-32 character encryption key', 'Enryption key', "")
@@ -273,16 +273,25 @@ function Get-YubiKeyInfo(){
             $logTextBox.Text = "Fetching encrypted data from AD for user: $($user.DisplayName) ($userName)"
             $encryptedYubi = $Matches[2]
             $decryptedYubi = Get-EncryptedData -data $encryptedYubi -key $key
-            $yubiInfo = $decryptedYubi -split ";"
-            $userOutputLabel.Text = $userName
-            $serialOutputLabel.Text = $yubiInfo[0]
-            $pinOutputLabel.Text = $yubiInfo[1]
-            $pukOutputLabel.Text = $yubiInfo[2]
-            $certOutputLabel.Text = $yubiInfo[3]
-            $logTextBox.Text += "`n" | Out-String
-            $logTextBox.Text += "YubiKey information loaded!"
-            Set-YubiImage Green
-            return $yubiInfo
+			if ($decryptedYubi){
+				$yubiInfo = $decryptedYubi -split ";"
+				$userOutputLabel.Text = $userName
+				$serialOutputLabel.Text = $yubiInfo[0]
+				$pinOutputLabel.Text = $yubiInfo[1]
+				$pukOutputLabel.Text = $yubiInfo[2]
+				$certOutputLabel.Text = $yubiInfo[3]
+				$logTextBox.Text += "`n" | Out-String
+				$logTextBox.Text += "YubiKey information loaded!"
+				Set-YubiImage Green
+				return $yubiInfo
+			}
+			else{
+                $logTextBox.Text = "Invalid encryption key, unable to encrypt data!"
+                $logTextBox.Text += "`n" | Out-String
+                $logTextBox.Text += "Delete $CredsFile and restart program!"
+                Set-YubiImage Red
+            }
+
     
         }else{
             Clear-YubiInfoBox
