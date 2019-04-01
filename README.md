@@ -7,6 +7,7 @@ I would not recommend using it in a production environment without fully underst
 * PowerShell Version 5
 * Active Directory PowerShell module
 * Yubikey Manager (https://www.yubico.com/products/services-software/download/yubikey-manager/)
+* YubiKey minidriver (https://www.yubico.com/products/services-software/download/smart-card-drivers-tools/)
 * Microsoft Enterprise PKI
 
 
