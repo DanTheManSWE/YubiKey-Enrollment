@@ -255,7 +255,27 @@ function Clear-YubiInfoBox(){
     $certOutputLabel.Text = ""
 }
 
-
+function Get-ADCertificate($user){
+    $YubiCerts = @()
+    $SortedCerts = @()
+    foreach ($usercert in $user.Certificates){
+        $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2 $usercert
+        $temp = $cert.Extensions | Where-Object {$_.Oid.Value -eq "1.3.6.1.4.1.311.20.2"}
+        if (!$temp) {
+                $temp = $cert.Extensions | Where-Object {$_.Oid.Value -eq "1.3.6.1.4.1.311.21.7"}
+        }
+        
+        if($temp.Format(1) -match "YubiKey"){
+            Write-Host "Found matching cert in AD! $($temp.Format(1))"
+            $YubiCerts += $cert
+        }
+    }
+    
+    ## Sort Certificates based on SerialNumber and only return latest one
+    $SortedCerts = $YubiCerts | Sort-Object -Descending SerialNumber
+    $SerialNumber = $SortedCerts[0].SerialNumber | Out-String
+    return $SerialNumber
+}
 
 function Get-YubiKeyInfo(){
     $adInfo = @()
@@ -263,7 +283,7 @@ function Get-YubiKeyInfo(){
     $UserName = $userNameTextBox1.Text
     $adAttribute = $config.Configuration.ADAttribute
     if($UserName){
-        $user = Get-ADUser -Filter {SamAccountName -eq $userName} -Properties $adAttribute, displayName
+        $user = Get-ADUser -Filter {SamAccountName -eq $userName} -Properties $adAttribute, displayName, Certificates
     }else{
         $logTextBox.Text += "Input username!" | Out-String
         Set-YubiImage Red
@@ -273,6 +293,8 @@ function Get-YubiKeyInfo(){
 
 
     if ($user){
+        ## Get certificate serialnumber from AD if it exist on the user
+        $CertSerial = Get-ADCertificate $user
         if($adInfo[0] -match "(YubiKey: )(.+)"){
             $logTextBox.Text = "Fetching encrypted data from AD for user: $($user.DisplayName) ($userName)"
             $encryptedYubi = $Matches[2]
@@ -282,8 +304,13 @@ function Get-YubiKeyInfo(){
 				$userOutputLabel.Text = $userName
 				$serialOutputLabel.Text = $yubiInfo[0]
 				$pinOutputLabel.Text = $yubiInfo[1]
-				$pukOutputLabel.Text = $yubiInfo[2]
-				$certOutputLabel.Text = $yubiInfo[3]
+                $pukOutputLabel.Text = $yubiInfo[2]
+                if($CertSerial){
+                    $certOutputLabel.Text = $CertSerial | Out-String
+                }else{
+                    $certOutputLabel.Text = $yubiInfo[3]
+                }
+				
 				$logTextBox.Text += "`n" | Out-String
 				$logTextBox.Text += "YubiKey information loaded!"
 				Set-YubiImage Green
@@ -322,7 +349,7 @@ function Confirm-ADUser(){
     Clear-YubiInfoBox
     $adAttribute = $config.Configuration.ADAttribute
     if($UserName){
-		$user = Get-ADUser -Filter {SamAccountName -eq $UserName} -Properties $adAttribute
+		$user = Get-ADUser -Filter {SamAccountName -eq $UserName} -Properties $adAttribute, Certificates
 	}else{
         $logTextBox.Text += "Input username!" | Out-String
         Set-YubiImage Red
@@ -333,6 +360,7 @@ function Confirm-ADUser(){
     if($user){
         Write-Host "User: $($user.GivenName) $($user.Surname) verified in Active Directory" -ForegroundColor Green
         $logTextBox.Text += "User: $($user.GivenName) $($user.Surname) verified in Active Directory" | Out-String
+        $CertSerial = Get-ADCertificate $user
         Set-YubiImage Default
     }else{
         $entry = "User $UserName does not exist in AD, verify username!"
@@ -347,7 +375,12 @@ function Confirm-ADUser(){
 
      if($adInfo[0] -match "(YubiKey: )(.+)"){
         $yubiInfo = Get-YubiKeyInfo
-        $logTextBox.Text = "YubiKey already enrolled for user, if YubiKey is lost make sure to revoke certificate: $($yubiInfo[3])"
+        if ($CertSerial){
+            $logTextBox.Text = "YubiKey already enrolled for user, if YubiKey is lost make sure to revoke certificate: $CertSerial"
+        }else{
+            $logTextBox.Text = "YubiKey already enrolled for user, if YubiKey is lost make sure to revoke certificate: $($yubiInfo[3])"
+        }
+
         $msgBoxInput = [System.Windows.MessageBox]::Show('YubiKey already enrolled for user, do you want to overwrite information?','YubiKey Warning','YesNo','Warning')
 
         switch ($msgBoxInput){
