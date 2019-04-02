@@ -275,9 +275,10 @@ function Get-ADCertificate($user){
     $SortedCerts = $YubiCerts | Sort-Object -Descending SerialNumber
     if ($SortedCerts){
         $SerialNumber = $SortedCerts[0].SerialNumber | Out-String
+        return $SerialNumber.Trim()
     }
     
-    return $SerialNumber.Trim()
+    
 }
 
 function Get-YubiKeyInfo(){
