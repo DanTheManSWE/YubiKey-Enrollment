@@ -273,8 +273,11 @@ function Get-ADCertificate($user){
     
     ## Sort Certificates based on SerialNumber and only return latest one
     $SortedCerts = $YubiCerts | Sort-Object -Descending SerialNumber
-    $SerialNumber = $SortedCerts[0].SerialNumber | Out-String
-    return $SerialNumber
+    if ($SortedCerts){
+        $SerialNumber = $SortedCerts[0].SerialNumber | Out-String
+    }
+    
+    return $SerialNumber.Trim()
 }
 
 function Get-YubiKeyInfo(){
@@ -306,12 +309,17 @@ function Get-YubiKeyInfo(){
 				$pinOutputLabel.Text = $yubiInfo[1]
                 $pukOutputLabel.Text = $yubiInfo[2]
                 if($CertSerial){
-                    $certOutputLabel.Text = $CertSerial | Out-String
+                    $certOutputLabel.Text = $CertSerial
                 }else{
                     $certOutputLabel.Text = $yubiInfo[3]
+                    $logTextBox.Text += "`n" | Out-String
+                    $logTextBox.Text += "If YubiKey is lost make sure to revoke certificate: $($yubiInfo[3])" | Out-String
+                    $logTextBox.Text += "`n" | Out-String
+                    $logTextBox.Text += "If user has renewed the certificate, this may not be the correct serialnumber."
                 }
 				
-				$logTextBox.Text += "`n" | Out-String
+                $logTextBox.Text += "`n" | Out-String
+                $logTextBox.Text += "`n" | Out-String
 				$logTextBox.Text += "YubiKey information loaded!"
 				Set-YubiImage Green
 				return $yubiInfo
@@ -379,6 +387,8 @@ function Confirm-ADUser(){
             $logTextBox.Text = "YubiKey already enrolled for user, if YubiKey is lost make sure to revoke certificate: $CertSerial"
         }else{
             $logTextBox.Text = "YubiKey already enrolled for user, if YubiKey is lost make sure to revoke certificate: $($yubiInfo[3])"
+            $logTextBox.Text += "`n" | Out-String
+            $logTextBox.Text += "If user has renewed the certificate, this may not be the correct serialnumber."
         }
 
         $msgBoxInput = [System.Windows.MessageBox]::Show('YubiKey already enrolled for user, do you want to overwrite information?','YubiKey Warning','YesNo','Warning')
