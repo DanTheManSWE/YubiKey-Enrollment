@@ -258,6 +258,7 @@ function Clear-YubiInfoBox(){
 function Get-ADCertificate($user){
     $YubiCerts = @()
     $SortedCerts = @()
+    $templateName = $config.Configuration.CertTemplate
     foreach ($usercert in $user.Certificates){
         $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2 $usercert
         $temp = $cert.Extensions | Where-Object {$_.Oid.Value -eq "1.3.6.1.4.1.311.20.2"}
@@ -265,7 +266,7 @@ function Get-ADCertificate($user){
                 $temp = $cert.Extensions | Where-Object {$_.Oid.Value -eq "1.3.6.1.4.1.311.21.7"}
         }
         
-        if($temp.Format(1) -match "YubiKey"){
+        if($temp.Format(1) -match $templateName){
             Write-Host "Found matching cert in AD! $($temp.Format(1))"
             $YubiCerts += $cert
         }
