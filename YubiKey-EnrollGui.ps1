@@ -17,10 +17,12 @@ if (Test-Path "$PSScriptRoot\config.xml"){
 [System.Windows.Forms.Application]::EnableVisualStyles()
 
 $Form                            = New-Object system.Windows.Forms.Form
-$Form.ClientSize                 = '560,490'
+$Form.ClientSize                 = '570,510'
+$Form.MinimumSize                = '570,510'
 $Form.text                       = "YubiKey Enrollment"
 $Form.TopMost                    = $false
 $Form.Icon                       = "$PSScriptRoot\Resources\YubiKey-5-NFC.ico"
+$Form.StartPosition              = 'CenterScreen'
 
 $userNameTextBox1                = New-Object system.Windows.Forms.TextBox
 $userNameTextBox1.multiline      = $false
@@ -35,46 +37,6 @@ $enrollButton.width              = 115
 $enrollButton.height             = 30
 $enrollButton.location           = New-Object System.Drawing.Point(280,25)
 $enrollButton.Font               = 'Microsoft Sans Serif,10'
-
-$userNameLabel                   = New-Object system.Windows.Forms.Label
-$userNameLabel.text              = "Username"
-$userNameLabel.AutoSize          = $true
-$userNameLabel.width             = 25
-$userNameLabel.height            = 10
-$userNameLabel.location          = New-Object System.Drawing.Point(15,15)
-$userNameLabel.Font              = 'Microsoft Sans Serif,10'
-
-$serialLabel                     = New-Object system.Windows.Forms.Label
-$serialLabel.text                = "Serial:"
-$serialLabel.AutoSize            = $true
-$serialLabel.width               = 25
-$serialLabel.height              = 10
-$serialLabel.location            = New-Object System.Drawing.Point(7,38)
-$serialLabel.Font                = 'Microsoft Sans Serif,10'
-
-$pinLabel                        = New-Object system.Windows.Forms.Label
-$pinLabel.text                   = "Pin:"
-$pinLabel.AutoSize               = $true
-$pinLabel.width                  = 25
-$pinLabel.height                 = 10
-$pinLabel.location               = New-Object System.Drawing.Point(7,58)
-$pinLabel.Font                   = 'Microsoft Sans Serif,10'
-
-$pukLabel                        = New-Object system.Windows.Forms.Label
-$pukLabel.text                   = "Puk:"
-$pukLabel.AutoSize               = $true
-$pukLabel.width                  = 25
-$pukLabel.height                 = 10
-$pukLabel.location               = New-Object System.Drawing.Point(7,78)
-$pukLabel.Font                   = 'Microsoft Sans Serif,10'
-
-$certLabel                       = New-Object system.Windows.Forms.Label
-$certLabel.text                  = "Cert:"
-$certLabel.AutoSize              = $true
-$certLabel.width                 = 25
-$certLabel.height                = 10
-$certLabel.location              = New-Object System.Drawing.Point(7,98)
-$certLabel.Font                  = 'Microsoft Sans Serif,10'
 
 $logButton                       = New-Object system.Windows.Forms.Button
 $logButton.text                  = "YubiKey Info"
@@ -92,11 +54,20 @@ $PictureBox1.Image			     = $img
 $PictureBox1.SizeMode            = [System.Windows.Forms.PictureBoxSizeMode]::zoom
 
 $Groupbox1                       = New-Object system.Windows.Forms.Groupbox
-$Groupbox1.height                = 121
+$Groupbox1.height                = 153
 $Groupbox1.width                 = 400
 $Groupbox1.text                  = "YubiKey Info"
 $Groupbox1.location              = New-Object System.Drawing.Point(15,69)
 
+$userNameLabel                   = New-Object system.Windows.Forms.Label
+$userNameLabel.text              = "Username"
+$userNameLabel.AutoSize          = $true
+$userNameLabel.width             = 25
+$userNameLabel.height            = 10
+$userNameLabel.location          = New-Object System.Drawing.Point(15,15)
+$userNameLabel.Font              = 'Microsoft Sans Serif,10'
+
+<#
 $userLabel                       = New-Object system.Windows.Forms.Label
 $userLabel.text                  = "User:"
 $userLabel.AutoSize              = $true
@@ -105,60 +76,138 @@ $userLabel.height                = 10
 $userLabel.location              = New-Object System.Drawing.Point(7,18)
 $userLabel.Font                  = 'Microsoft Sans Serif,10'
 
-$logTextBox                      = New-Object system.Windows.Forms.TextBox
-$logTextBox.multiline            = $true
-$logTextBox.width                = 530
-$logTextBox.height               = 265
-$logTextBox.Anchor               = 'top,right,bottom,left'
-$logTextBox.location             = New-Object System.Drawing.Point(15,210)
-$logTextBox.Font                 = 'Consolas,10'
-$logTextBox.ScrollBars           = "Vertical"
-
 $userOutputLabel                 = New-Object system.Windows.Forms.Label
 $userOutputLabel.AutoSize        = $true
+$userOutputLabel.Text = "username"
 $userOutputLabel.width           = 25
 $userOutputLabel.height          = 10
-$userOutputLabel.location        = New-Object System.Drawing.Point(54,18)
+$userOutputLabel.location        = New-Object System.Drawing.Point(64,18)
 $userOutputLabel.Font            = 'Microsoft Sans Serif,10'
+#>
+$serialLabel                     = New-Object system.Windows.Forms.Label
+$serialLabel.text                = "Serial:"
+$serialLabel.AutoSize            = $true
+$serialLabel.width               = 25
+$serialLabel.height              = 10
+$serialLabel.location            = New-Object System.Drawing.Point(7,18)
+$serialLabel.Font                = 'Microsoft Sans Serif,10'
+
+$yubiKeycomboBox1                = New-Object System.Windows.Forms.ComboBox
+$yubiKeycomboBox1.Location       = New-Object System.Drawing.Point(64,14)
+$yubiKeycomboBox1.Size           = New-Object System.Drawing.Size(100,20)
+$yubiKeycomboBox1.DropDownStyle  = [System.Windows.Forms.ComboBoxStyle]::DropDownList;
+$yubiKeycomboBox1.Font           = 'Microsoft Sans Serif,10'
+#$yubiKeycomboBox1.Sorted         = $True
+$yubiKeycomboBox1.Visible        = $false
 
 $serialOutputLabel               = New-Object system.Windows.Forms.Label
 $serialOutputLabel.AutoSize      = $true
+#$serialOutputLabel.Text          = "90123456"
 $serialOutputLabel.width         = 25
 $serialOutputLabel.height        = 10
-$serialOutputLabel.location      = New-Object System.Drawing.Point(54,38)
+$serialOutputLabel.location      = New-Object System.Drawing.Point(64,18)
 $serialOutputLabel.Font          = 'Microsoft Sans Serif,10'
+$serialOutputLabel.Visible       = $true
+
+$pinLabel                        = New-Object system.Windows.Forms.Label
+$pinLabel.text                   = "Pin:"
+$pinLabel.AutoSize               = $true
+$pinLabel.width                  = 25
+$pinLabel.height                 = 10
+$pinLabel.location               = New-Object System.Drawing.Point(7,40)
+$pinLabel.Font                   = 'Microsoft Sans Serif,10'
 
 $pinOutputLabel                  = New-Object system.Windows.Forms.Label
+#$pinOutputLabel.Text             = "001234"
 $pinOutputLabel.AutoSize         = $true
 $pinOutputLabel.width            = 25
 $pinOutputLabel.height           = 10
-$pinOutputLabel.location         = New-Object System.Drawing.Point(54,58)
+$pinOutputLabel.location         = New-Object System.Drawing.Point(64,40)
 $pinOutputLabel.Font             = 'Microsoft Sans Serif,10'
 
+$pukLabel                        = New-Object system.Windows.Forms.Label
+$pukLabel.text                   = "Puk:"
+$pukLabel.AutoSize               = $true
+$pukLabel.width                  = 25
+$pukLabel.height                 = 10
+$pukLabel.location               = New-Object System.Drawing.Point(7,62)
+$pukLabel.Font                   = 'Microsoft Sans Serif,10'
+
 $pukOutputLabel                  = New-Object system.Windows.Forms.Label
+#$pukOutputLabel.Text             = "12345678"
 $pukOutputLabel.AutoSize         = $true
 $pukOutputLabel.width            = 25
 $pukOutputLabel.height           = 10
-$pukOutputLabel.location         = New-Object System.Drawing.Point(54,78)
+$pukOutputLabel.location         = New-Object System.Drawing.Point(64,62)
 $pukOutputLabel.Font             = 'Microsoft Sans Serif,10'
 
+$certLabel                       = New-Object system.Windows.Forms.Label
+$certLabel.text                  = "Cert:"
+$certLabel.AutoSize              = $true
+$certLabel.width                 = 25
+$certLabel.height                = 10
+$certLabel.location              = New-Object System.Drawing.Point(7,84)
+$certLabel.Font                  = 'Microsoft Sans Serif,10'
+
 $certOutputLabel                  = New-Object system.Windows.Forms.Label
+#$certOutputLabel.Text            = "ABCDEFG123456425324325432"
 $certOutputLabel.AutoSize         = $true
 $certOutputLabel.width            = 25
 $certOutputLabel.height           = 10
-$certOutputLabel.location         = New-Object System.Drawing.Point(54,98)
+$certOutputLabel.location         = New-Object System.Drawing.Point(64,84)
 $certOutputLabel.Font             = 'Microsoft Sans Serif,10'
+
+$adCertLabel                       = New-Object system.Windows.Forms.Label
+$adCertLabel.text                  = "AD Cert:"
+$adCertLabel.AutoSize              = $true
+$adCertLabel.width                 = 25
+$adCertLabel.height                = 10
+$adCertLabel.location              = New-Object System.Drawing.Point(7,106)
+$adCertLabel.Font                  = 'Microsoft Sans Serif,10'
+
+$adCertOutputLabel                  = New-Object system.Windows.Forms.Label
+#$adCertOutputLabel.Text            = "A23144ADSFG123456425324325432"
+$adCertOutputLabel.AutoSize         = $true
+$adCertOutputLabel.width            = 25
+$adCertOutputLabel.height           = 10
+$adCertOutputLabel.location         = New-Object System.Drawing.Point(64,106)
+$adCertOutputLabel.Font             = 'Microsoft Sans Serif,10'
+
+$dateLabel                       = New-Object system.Windows.Forms.Label
+$dateLabel.text                  = "Date:"
+$dateLabel.AutoSize              = $true
+$dateLabel.width                 = 25
+$dateLabel.height                = 10
+$dateLabel.location              = New-Object System.Drawing.Point(7,128)
+$dateLabel.Font                  = 'Microsoft Sans Serif,10'
+
+$dateOutputLabel                  = New-Object system.Windows.Forms.Label
+#$dateOutputLabel.Text            = "den 22 maj 2019 08:05:18"
+$dateOutputLabel.AutoSize         = $true
+$dateOutputLabel.width            = 25
+$dateOutputLabel.height           = 10
+$dateOutputLabel.location         = New-Object System.Drawing.Point(64,128)
+$dateOutputLabel.Font             = 'Microsoft Sans Serif,10'
 
 $logLabel                        = New-Object system.Windows.Forms.Label
 $logLabel.text                   = "Log"
 $logLabel.AutoSize               = $true
 $logLabel.width                  = 25
 $logLabel.height                 = 10
-$logLabel.location               = New-Object System.Drawing.Point(15,192)
+$logLabel.location               = New-Object System.Drawing.Point(15,230)
 $logLabel.Font                   = 'Microsoft Sans Serif,10'
 
+$logTextBox                      = New-Object system.Windows.Forms.TextBox
+$logTextBox.multiline            = $true
+$logTextBox.width                = 530
+$logTextBox.height               = 240
+$logTextBox.Anchor               = 'top,right,bottom,left'
+$logTextBox.location             = New-Object System.Drawing.Point(15,250)
+$logTextBox.Font                 = 'Consolas,10'
+$logTextBox.ScrollBars           = "Vertical"
+
 $Form.controls.AddRange(@($userNameTextBox1,$enrollButton,$userNameLabel,$logButton,$PictureBox1,$Groupbox1,$logTextBox,$logLabel))
-$Groupbox1.controls.AddRange(@($certOutputLabel,$certLabel,$serialLabel,$pinLabel,$pukLabel,$userLabel,$userOutputLabel,$serialOutputLabel,$pinOutputLabel,$pukOutputLabel))
+$Groupbox1.controls.AddRange(@($certOutputLabel,$certLabel,$serialLabel,$pinLabel,$pukLabel,$yubiKeycomboBox1,$serialOutputLabel,$pinOutputLabel,$pukOutputLabel,$dateLabel,$dateOutputLabel,$adCertLabel,$adCertOutputLabel))
 
 $enrollButton.Add_Click({Confirm-ADUser})
 $logButton.Add_Click({Get-YubiKeyInfo})
@@ -168,6 +217,18 @@ $userNameTextBox1.Add_KeyDown({
         Confirm-ADUser
     }
 })
+
+    
+$yubiKeycomboBox1.Add_SelectedIndexChanged(
+    { 
+        $x = $yubiKeycomboBox1.SelectedItem
+        $serialOutputLabel.Text = $x.Serial
+        $certOutputLabel.Text = $x.Cert
+        $pinOutputLabel.Text = $x.Pin
+        $pukOutputLabel.Text = $x.Puk
+        $dateOutputLabel.Text = $x.Date
+    }
+)
 
 #Write your logic code here
 
@@ -247,15 +308,45 @@ function Get-EncryptedData {
 	ForEach-Object {[Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($_))}
 }
 
+function Check-DBConnection(){
+    $Instance = $config.Configuration.DBServer
+    $Database = $config.Configuration.Database
+    $db = Get-SqlDatabase -ServerInstance $Instance -Name $Database
+
+    if(!($db)){
+        Write-Host "No Connection to Database! Check connection"
+        Set-YubiImage Red
+        $logTextBox.Text = "No Connection to Database! Check connection"
+        $logTextBox.Text += "`n" | Out-String
+        return $false
+    }
+
+    $logTextBox.Text += "Connection to $Database on Instance: $Instance established."
+    $logTextBox.Text += "`n" | Out-String
+    return $true
+}
+
 function Clear-YubiInfoBox(){
-    $userOutputLabel.Text = ""
+#    $userOutputLabel.Text = ""
     $serialOutputLabel.Text = ""
     $pinOutputLabel.Text = ""
     $pukOutputLabel.Text = ""
     $certOutputLabel.Text = ""
+    $dateOutputLabel.Text = ""
+    $adCertOutputLabel.Text = ""
 }
 
-function Get-ADCertificate($user){
+function Get-ADCertificate($userName){
+    if (!(Get-Module ActiveDirectory)){
+        $logTextBox.Text += "`n" | Out-String
+        $logTextBox.Text += "Active Directory Module not loaded!" | Out-String
+        $adCertOutputLabel.Text = "N/A"
+        Set-YubiImage Red
+        return
+    }else{
+        $user = Get-ADUser -Filter {SamAccountName -eq $userName} -Properties displayName, Certificates
+    }
+
     $YubiCerts = @()
     $SortedCerts = @()
     $templateName = $config.Configuration.CertTemplate
@@ -265,7 +356,10 @@ function Get-ADCertificate($user){
         if (!$temp) {
                 $temp = $cert.Extensions | Where-Object {$_.Oid.Value -eq "1.3.6.1.4.1.311.21.7"}
         }
-        
+        if (!$temp){
+            $adCertOutputLabel.Text = "N/A"
+            return
+        }
         if($temp.Format(1) -match $templateName){
             Write-Host "Found matching cert in AD! $($temp.Format(1))"
             $YubiCerts += $cert
@@ -276,67 +370,145 @@ function Get-ADCertificate($user){
     $SortedCerts = $YubiCerts | Sort-Object -Descending SerialNumber
     if ($SortedCerts){
         $SerialNumber = $SortedCerts[0].SerialNumber | Out-String
-        return $SerialNumber.Trim()
+        $adCertOutputLabel.Text = $SerialNumber.Trim()
+        $logTextBox.Text += "`n" | Out-String
+        $logTextBox.Text += "Latest YubiKey cert in AD: " + $SerialNumber
+    }else{
+        $adCertOutputLabel.Text = "N/A"
     }
     
     
 }
 
+function Get-SQLData{
+    $yubiKeycomboBox1.DataSource = $null
+    $yubiKeycomboBox1.Visible = $false
+    $serialOutputLabel.Visible = $true
+    $Instance = $config.Configuration.DBServer
+    $Database = $config.Configuration.Database
+    $Table = "Enrolled_YubiKeys"
+    $db = Get-SqlDatabase -ServerInstance $Instance -Name $Database
+
+    if(!($db)){
+        Write-Host "No Connection to Database! Check connection"
+        Set-YubiImage Red
+        $logTextBox.Text = "No Connection to Database! Check connection"
+        $logTextBox.Text += "`n" | Out-String
+        return
+    }
+
+    $userName = $userNameTextBox1.Text
+    $Query = "select * from dbo.$Table WHERE USERNAME='$userName'"
+    $EncryptedKeys = Invoke-Sqlcmd -ServerInstance $Instance -Database $Database -Query $Query # -OutPutAs DataTables
+    if(!($EncryptedKeys)){
+        $logTextBox.Text = "No YubiKey information found on User: $userName"
+        Set-YubiImage Red
+        return
+    }
+    $DecryptedKeys = New-Object System.Data.Datatable
+    $DecryptedKeys.Columns.Add("Serial") | Out-Null
+    $DecryptedKeys.Columns.Add("Pin") | Out-Null
+    $DecryptedKeys.Columns.Add("Puk") | Out-Null 
+    $DecryptedKeys.Columns.Add("Cert") | Out-Null
+    $DecryptedKeys.Columns.Add("Date") | Out-Null
+    $DecryptedKeys.Columns.Add("Username") | Out-Null
+    
+    Foreach ($Encryptedkey in $EncryptedKeys){
+        $DecryptedInfo = (Get-EncryptedData -key $key -data $Encryptedkey.EncryptedInfo).Split(";")
+        $DecryptedKeys.Rows.Add($DecryptedInfo[0],$DecryptedInfo[1],$DecryptedInfo[2],$DecryptedInfo[3],$EncryptedKey.Date, $EncryptedKey.Username) | Out-Null
+    }
+    ## Check if Datatable has more than one rows, if so unhide Combobox
+    if($DecryptedKeys.Rows.Count -gt 1){
+        $yubiKeycomboBox1.Visible = $true
+        $serialOutputLabel.Visible = $false
+    }
+
+    ## Sort datatable
+    $DecryptedKeys.DefaultView.Sort = "Cert DESC"
+    $DecryptedKeys = $DecryptedKeys.DefaultView.ToTable()
+
+    $yubiKeycomboBox1.DataSource = $DecryptedKeys
+    $yubiKeycomboBox1.DisplayMember = "Serial"
+    $yubiKeycomboBox1.ValueMember = "Serial"
+
+    $yubiInfo = $DecryptedKeys.Rows[0].ItemArray
+
+    $logTextBox.Text += "`n" | Out-String
+    $logTextBox.Text += "If YubiKey is lost make sure to revoke certificate: $($yubiInfo[3])" | Out-String
+    $logTextBox.Text += "`n" | Out-String
+    $logTextBox.Text += "If user has renewed the certificate, this may not be the correct serialnumber.`nCheck AD Cert instead." | Out-String
+
+    ## Get Certificate information from AD
+    Get-ADCertificate $userName
+
+    Set-YubiImage Green
+}
+
 function Get-YubiKeyInfo(){
-    $adInfo = @()
+    Clear-YubiInfoBox
     $logTextBox.Text = ""
     $UserName = $userNameTextBox1.Text
-    $adAttribute = $config.Configuration.ADAttribute
+    [Boolean]$useDatabase = [System.Convert]::ToBoolean($config.Configuration.UseDatabase)
+    [Boolean]$useAD = [System.Convert]::ToBoolean($config.Configuration.UseAD)   
     if($UserName){
-        $user = Get-ADUser -Filter {SamAccountName -eq $userName} -Properties $adAttribute, displayName, Certificates
+        if($useDatabase){
+            $logTextBox.Text += "Fetching data from Database"
+            $sqlData = Get-SQLData
+            return $sqlData
+        }
+        if($useAD){
+            $adData = Get-ADData
+            return $adData
+        }
     }else{
         $logTextBox.Text += "Input username!" | Out-String
         Set-YubiImage Red
-		return
+        return
+    }
+}
+
+function Get-ADData(){
+    $adInfo = @()
+    $adAttribute = $config.Configuration.ADAttribute
+    if (!(Get-Module ActiveDirectory)){
+        $logTextBox.Text += "`n" | Out-String
+        $logTextBox.Text += "Active Directory Module not loaded!" | Out-String
+        Set-YubiImage Red
+        return
+    }else{
+        $user = Get-ADUser -Filter {SamAccountName -eq $userName} -Properties $adAttribute, displayName, Certificates
     }
     $adInfo += $user | Select-Object -ExpandProperty $adAttribute
-
-
     if ($user){
         ## Get certificate serialnumber from AD if it exist on the user
-        $CertSerial = Get-ADCertificate $user
         if($adInfo[0] -match "(YubiKey: )(.+)"){
             $logTextBox.Text = "Fetching encrypted data from AD for user: $($user.DisplayName) ($userName)"
             $encryptedYubi = $Matches[2]
             $decryptedYubi = Get-EncryptedData -data $encryptedYubi -key $key
-			if ($decryptedYubi){
-				$yubiInfo = $decryptedYubi -split ";"
-				$userOutputLabel.Text = $userName
-				$serialOutputLabel.Text = $yubiInfo[0]
-				$pinOutputLabel.Text = $yubiInfo[1]
+            if ($decryptedYubi){
+                $yubiInfo = $decryptedYubi -split ";"
+                #$userOutputLabel.Text = $userName
+                $serialOutputLabel.Text = $yubiInfo[0]
+                $pinOutputLabel.Text = $yubiInfo[1]
                 $pukOutputLabel.Text = $yubiInfo[2]
-                if($CertSerial){
-                    $certOutputLabel.Text = $CertSerial
-                }else{
-                    $certOutputLabel.Text = $yubiInfo[3]
-                    $logTextBox.Text += "`n" | Out-String
-                    $logTextBox.Text += "If YubiKey is lost make sure to revoke certificate: $($yubiInfo[3])" | Out-String
-                    $logTextBox.Text += "`n" | Out-String
-                    $logTextBox.Text += "If user has renewed the certificate, this may not be the correct serialnumber."
-                }
-				
+                $certOutputLabel.Text = $yubiInfo[3]
                 $logTextBox.Text += "`n" | Out-String
+                $logTextBox.Text += "If YubiKey is lost make sure to revoke certificate: $($yubiInfo[3])" | Out-String
                 $logTextBox.Text += "`n" | Out-String
-				$logTextBox.Text += "YubiKey information loaded!"
-				Set-YubiImage Green
-				return $yubiInfo
-			}
-			else{
+                $logTextBox.Text += "If user has renewed the certificate, this may not be the correct serialnumber.`nCheck ADCert instead." | Out-String
+                Get-ADCertificate $userName
+                Set-YubiImage Green
+                return $yubiInfo
+            }
+            else{
                 $logTextBox.Text = "Invalid encryption key, unable to encrypt data!"
                 $logTextBox.Text += "`n" | Out-String
                 $logTextBox.Text += "Delete $CredsFile and restart program!"
                 Set-YubiImage Red
             }
-
-    
         }else{
             Clear-YubiInfoBox
-            $entry = "No YubiKey information found on User: $userName"
+            $entry = "No YubiKey information found on User: $($user.DisplayName) ($userName)"
             Write-Warning $entry
             $logTextBox.Text = $entry | Out-String
             Set-YubiImage Red
@@ -344,7 +516,7 @@ function Get-YubiKeyInfo(){
     }else{
         $entry = "User $UserName does not exist in AD, verify username!"
         $logTextBox.Text += $entry | Out-String
-        Write-Error $entry
+        Write-Warning $entry
         New-LogEntry $entry $true
         Set-YubiImage Red
         return
@@ -358,8 +530,14 @@ function Confirm-ADUser(){
     $userName = $userNameTextBox1.Text
     Clear-YubiInfoBox
     $adAttribute = $config.Configuration.ADAttribute
-    if($UserName){
-		$user = Get-ADUser -Filter {SamAccountName -eq $UserName} -Properties $adAttribute, Certificates
+    if($userName){
+        if (!(Get-Module ActiveDirectory)){
+            $logTextBox.Text += "Active Directory Module not loaded!" | Out-String
+            Set-YubiImage Red
+            return
+        }else{
+            $user = Get-ADUser -Filter {SamAccountName -eq $UserName} -Properties $adAttribute, Certificates
+        }
 	}else{
         $logTextBox.Text += "Input username!" | Out-String
         Set-YubiImage Red
@@ -370,7 +548,7 @@ function Confirm-ADUser(){
     if($user){
         Write-Host "User: $($user.GivenName) $($user.Surname) verified in Active Directory" -ForegroundColor Green
         $logTextBox.Text += "User: $($user.GivenName) $($user.Surname) verified in Active Directory" | Out-String
-        $CertSerial = Get-ADCertificate $user
+        Get-ADCertificate $userName
         Set-YubiImage Default
     }else{
         $entry = "User $UserName does not exist in AD, verify username!"
@@ -384,15 +562,7 @@ function Confirm-ADUser(){
     $adInfo += $user | Select-Object -ExpandProperty $adAttribute
 
      if($adInfo[0] -match "(YubiKey: )(.+)"){
-        $yubiInfo = Get-YubiKeyInfo
-        if ($CertSerial){
-            $logTextBox.Text = "YubiKey already enrolled for user, if YubiKey is lost make sure to revoke certificate: $CertSerial"
-        }else{
-            $logTextBox.Text = "YubiKey already enrolled for user, if YubiKey is lost make sure to revoke certificate: $($yubiInfo[3])"
-            $logTextBox.Text += "`n" | Out-String
-            $logTextBox.Text += "If user has renewed the certificate, this may not be the correct serialnumber."
-        }
-
+        Get-YubiKeyInfo
         $msgBoxInput = [System.Windows.MessageBox]::Show('YubiKey already enrolled for user, do you want to overwrite information?','YubiKey Warning','YesNo','Warning')
 
         switch ($msgBoxInput){
@@ -412,8 +582,7 @@ function Confirm-ADUser(){
                 Set-YubiImage Red
             }
 
-        }
-     
+        }    
      
      }else{
         Write-YubiKey $user $userName
@@ -421,9 +590,26 @@ function Confirm-ADUser(){
 
 }
 
+function Write-SQLData($userName,$encryptedInfo){
+    $Date = Get-Date
+    $Instance = $config.Configuration.DBServer
+    $Database = $config.Configuration.Database
+    $Table = "Enrolled_YubiKeys"
+
+    $Insert = @(
+        [ordered]@{
+        Username = $userName
+        EncryptedInfo = $encryptedInfo
+        Date = $Date
+        })
+
+        $Insert.Foreach({$_.ForEach({[PSCustomObject]$_}) | Write-SqlTableData -ServerInstance $Instance -DatabaseName $Database -SchemaName dbo -TableName $Table -Force})
+}
 
 function Write-YubiKey($user, $userName){
     Set-YubiImage Default
+    $yubiKeycomboBox1.Visible = $false
+    $serialOutputLabel.Visible = $true
     Clear-YubiInfoBox
     $ykman = $config.Configuration.Ykman
 
@@ -475,11 +661,11 @@ function Write-YubiKey($user, $userName){
     Write-Host "`n"
 
     $pinOutputLabel.Text = $pin
-    $userOutputLabel.Text = $UserName
+    $userOutputLabel.Text = $userName
     $serialOutputLabel.Text = $serial
     $pukOutputLabel.Text = $puk
 
-    $pinEntry = "User: $($UserName)`nSerial: $($serial)`nPin: $($pin)`nPuk: $($puk)"
+    $pinEntry = "User: $($userName)`nSerial: $($serial)`nPin: $($pin)`nPuk: $($puk)"
     Write-Host $pinEntry -ForegroundColor Green
     Write-Host "`n"
 
@@ -503,24 +689,24 @@ function Write-YubiKey($user, $userName){
         $pkcs7 = New-Object -ComObject X509enrollment.CX509CertificateRequestPkcs7
         $pkcs7.InitializeFromInnerRequest($pkcs10)
 
-
-        $pkcs7.RequesterName = $UserName
+        $pkcs7.RequesterName = $userName
 
         $signer = New-Object -ComObject X509Enrollment.CSignerCertificate
         $signer.Initialize(0,0,0xc,$signerCert)
 
-
         $pkcs7.SignerCertificate = $signer
-
 
         $Request = New-Object -ComObject X509Enrollment.CX509Enrollment
         $Request.InitializeFromRequest($pkcs7)
         $Request.Enroll()
-        $smartcardcert = Get-ChildItem Cert:\CurrentUser\my | where-object {$_.EnhancedKeyUsageList -like "*Smart Card*"} 
-        
+        $smartCardCerts = @()
+        $smartCardCerts = Get-ChildItem Cert:\CurrentUser\my | where-object {$_.EnhancedKeyUsageList -like "*Smart Card*"} 
+        $smartCardCerts = $smartCardCerts | Sort-Object NotBefore -Descending
         ##$smartCardInfo = "YubiKey: $serial" + ", " + "Cert thumbprint: $($smartcardcert.thumbprint)"
 
-        $certSerial = $smartcardcert.SerialNumber
+        ## Return latest smart card serialnumber
+        $smartCardCert = $smartCardCerts[0]
+        $certSerial = $smartCardCert.SerialNumber
 
         $certOutputLabel.Text = $certSerial | out-string
 
@@ -531,7 +717,8 @@ function Write-YubiKey($user, $userName){
 
         $adAttribute = $config.Configuration.ADAttribute
 		[Boolean]$adWrite = [System.Convert]::ToBoolean($config.Configuration.WriteToAD)
-	
+        [Boolean]$dbWrite = [System.Convert]::ToBoolean($config.Configuration.WriteToDB)
+
         if ($adWrite){
 			Write-Host "Writing Encrypted string to AD-attribute: $adAttribute" -foregroundcolor Yellow
 			$logTextBox.Text += "`n" | Out-String
@@ -541,7 +728,21 @@ function Write-YubiKey($user, $userName){
 			Write-Host "Yubikey info not written to AD, make sure to record information somewhere safe!" -foregroundcolor Yellow
 			$logTextBox.Text += "`n" | Out-String
 			$logTextBox.Text += "Yubikey info not written to AD, make sure to record information somewhere safe!`n" | Out-String
-		}
+        }
+        
+        if($dbWrite){
+            $dbConnection = Check-DBConnection
+            if($dbConnection){
+                Write-Host "Writing Encrypted string to SQL DB." -foregroundcolor Yellow
+                $logTextBox.Text += "`n" | Out-String
+                $logTextBox.Text += "Writing Encrypted string to SQL DB: $Database`n" | Out-String
+                Write-SQLData $userName $encryptedText
+            }else{
+                $logTextBox.Text += "Unable to Write to DB, no connection!" | Out-String
+                Set-YubiImage Red
+            }
+
+        }
 	
 	#Remove cached smart card cert after enrollment
         $smartcardcert | Remove-Item
@@ -582,8 +783,13 @@ function Write-YubiKey($user, $userName){
 
 ##Loading Active Directory Module
 if (!(Get-Module ActiveDirectory)){
-    $logTextBox.Text = "Loading Active Directory Module" | Out-String
-    Import-Module ActiveDirectory
+    if (Get-Module -ListAvailable -Name ActiveDirectory){
+        $logTextBox.Text = "Loading Active Directory Module" | Out-String
+        Import-Module ActiveDirectory
+    }else{
+        $logTextBox.Text += "Active Directory Module not found!" 
+        $logTextBox.Text += "`n" | Out-String 
+    }
     if (!(Get-Module ActiveDirectory)){
         $logTextBox.Text += "Active Directory Module not loaded!" | Out-String
         Set-YubiImage Red
@@ -591,6 +797,7 @@ if (!(Get-Module ActiveDirectory)){
         $logTextBox.Text += "Active Directory Module loaded" | Out-String
     }
 }
+
 
 
 ##Create Log-folder if needed
@@ -610,9 +817,14 @@ if($Credentials){
     $key = Set-Key ($Credentials.GetNetworkCredential().Password).ToString()
 }
 
+[Boolean]$useDatabase = [System.Convert]::ToBoolean($config.Configuration.UseDatabase)
 
-
-
+if($useDatabase){
+    $dbConnection = Check-DBConnection
+    if(!($dbConnection)){
+        Set-YubiImage Red
+    }
+}
 
 
 

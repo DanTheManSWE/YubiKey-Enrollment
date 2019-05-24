@@ -1,10 +1,16 @@
 ﻿<Configuration>
     <Ykman>C:\Program Files\Yubico\YubiKey Manager\ykman.exe</Ykman>
-    <SignerCert>35B332BBA72BB3752E68110C60569A8A5A5C43BF</SignerCert>
+    <SignerCert></SignerCert>
     <CertTemplate>YubiKey</CertTemplate>
     <WriteToAD>false</WriteToAD>
     <ADAttribute>houseIdentifier</ADAttribute>
     <DeleteOTP>false</DeleteOTP>
     <DeleteCachedSC>false</DeleteCachedSC>
     <WriteLog>true</WriteLog>
+    <WriteToDB>false</WriteToDB>
+    <DBServer></DBServer>
+    <Database>YubiKeyInfo</Database>
+    <DBTable>YubiData</DBTable>
+    <UseDatabase>false</UseDatabase>
+    <UseAD>false</UseAD>
 </Configuration>
