@@ -9,6 +9,8 @@ I would not recommend using it in a production environment without fully underst
 * Yubikey Manager (https://www.yubico.com/products/services-software/download/yubikey-manager/)
 * YubiKey minidriver (https://www.yubico.com/products/services-software/download/smart-card-drivers-tools/)
 * Microsoft Enterprise PKI
+* Sqlserver PowerShell Module (Install-Module -Name SqlServer -RequiredVersion 21.1.18256)
+* Microsoft SQL Server
 
 
 ## Quick Start Guide
@@ -16,7 +18,9 @@ I would not recommend using it in a production environment without fully underst
 * Install the required pre requisites.
 * Create templates for YubiKey Smart Card certificate and Enrollment Agent.
 * Enroll a Certificate Request Agent cert on the user running the script
+* Create a Database in SQL
 * Edit config.xml
+
 
 **config.xml explanation**
 * Ykman - Path to YubiKey Manager
@@ -26,6 +30,13 @@ I would not recommend using it in a production environment without fully underst
 * ADAttribute - AD Attribute to store PIN, PUK and Smartcard serial
 * DeleteOTP - If true, both OTP keys will be deleted on the YubiKey
 * DeleteCachedSC - If true, all cached smart card certs will be deleted under the user account running the script
+* WriteLog - Writes to logfile
+* WriteToDB - Stores pin, puk, yubikey serial etc as an Encrypted string in the specified database
+* DBServer - SQL Instance, for example Server01\SQLEXPRESS
+* Database - Database name
+* DBTable - Database table name
+* UseDatabase - Check for YubiKey info in the specified database
+* UseAD - Check for YubiKey info in the specified AD attribute
 
 
 
