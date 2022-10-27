@@ -7,8 +7,8 @@
     <DeleteOTP>false</DeleteOTP>
     <DeleteCachedSC>false</DeleteCachedSC>
     <WriteLog>true</WriteLog>
-    <WriteToDB>false</WriteToDB>
-    <DBServer></DBServer>
+    <WriteToDB>true</WriteToDB>
+    <DBServer>DBINSTANCE</DBServer>
     <Database>YubiKeyInfo</Database>
     <DBTable>YubiData</DBTable>
     <UseDatabase>false</UseDatabase>

@@ -14,6 +14,7 @@ if (Test-Path "$PSScriptRoot\config.xml"){
 	return
 }
 
+$script:selectedKey = ""
 [System.Windows.Forms.Application]::EnableVisualStyles()
 
 $Form                            = New-Object system.Windows.Forms.Form
@@ -67,23 +68,6 @@ $userNameLabel.height            = 10
 $userNameLabel.location          = New-Object System.Drawing.Point(15,15)
 $userNameLabel.Font              = 'Microsoft Sans Serif,10'
 
-<#
-$userLabel                       = New-Object system.Windows.Forms.Label
-$userLabel.text                  = "User:"
-$userLabel.AutoSize              = $true
-$userLabel.width                 = 25
-$userLabel.height                = 10
-$userLabel.location              = New-Object System.Drawing.Point(7,18)
-$userLabel.Font                  = 'Microsoft Sans Serif,10'
-
-$userOutputLabel                 = New-Object system.Windows.Forms.Label
-$userOutputLabel.AutoSize        = $true
-$userOutputLabel.Text = "username"
-$userOutputLabel.width           = 25
-$userOutputLabel.height          = 10
-$userOutputLabel.location        = New-Object System.Drawing.Point(64,18)
-$userOutputLabel.Font            = 'Microsoft Sans Serif,10'
-#>
 $serialLabel                     = New-Object system.Windows.Forms.Label
 $serialLabel.text                = "Serial:"
 $serialLabel.AutoSize            = $true
@@ -99,6 +83,14 @@ $yubiKeycomboBox1.DropDownStyle  = [System.Windows.Forms.ComboBoxStyle]::DropDow
 $yubiKeycomboBox1.Font           = 'Microsoft Sans Serif,10'
 #$yubiKeycomboBox1.Sorted         = $True
 $yubiKeycomboBox1.Visible        = $false
+
+$deleteButton                    = New-Object system.Windows.Forms.Button
+$deleteButton.text               = "Revoke"
+$deleteButton.width              = 115
+$deleteButton.height             = 30
+$deleteButton.location           = New-Object System.Drawing.Point(265,12)
+$deleteButton.Font               = 'Microsoft Sans Serif,10'
+$deleteButton.Enabled            = $false
 
 $serialOutputLabel               = New-Object system.Windows.Forms.Label
 $serialOutputLabel.AutoSize      = $true
@@ -207,10 +199,11 @@ $logTextBox.Font                 = 'Consolas,10'
 $logTextBox.ScrollBars           = "Vertical"
 
 $Form.controls.AddRange(@($userNameTextBox1,$enrollButton,$userNameLabel,$logButton,$PictureBox1,$Groupbox1,$logTextBox,$logLabel))
-$Groupbox1.controls.AddRange(@($certOutputLabel,$certLabel,$serialLabel,$pinLabel,$pukLabel,$yubiKeycomboBox1,$serialOutputLabel,$pinOutputLabel,$pukOutputLabel,$dateLabel,$dateOutputLabel,$adCertLabel,$adCertOutputLabel))
+$Groupbox1.controls.AddRange(@($certOutputLabel,$certLabel,$serialLabel,$pinLabel,$pukLabel,$yubiKeycomboBox1,$serialOutputLabel,$pinOutputLabel,$pukOutputLabel,$dateLabel,$dateOutputLabel,$adCertLabel,$adCertOutputLabel,$deleteButton))
 
 $enrollButton.Add_Click({Confirm-ADUser})
 $logButton.Add_Click({Get-YubiKeyInfo})
+$deleteButton.Add_Click({Remove-SQLData})
 
 $userNameTextBox1.Add_KeyDown({
     if ($_.KeyCode -eq "Enter"){
@@ -227,6 +220,7 @@ $yubiKeycomboBox1.Add_SelectedIndexChanged(
         $pinOutputLabel.Text = $x.Pin
         $pukOutputLabel.Text = $x.Puk
         $dateOutputLabel.Text = $x.Date
+        $script:selectedKey = $yubiKeycomboBox1.SelectedItem
     }
 )
 
@@ -323,7 +317,29 @@ function Check-DBConnection(){
 
     $logTextBox.Text += "Connection to $Database on Instance: $Instance established."
     $logTextBox.Text += "`n" | Out-String
+    ## Create DBTable if it doesn't exist
+    Create-DBTable
     return $true
+}
+
+function Create-DBTable{
+    $Instance = $config.Configuration.DBServer
+    $Database = $config.Configuration.Database
+    $Table = $config.Configuration.DBTable
+    $tableQuery = "SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = N'$Table'"
+    $sqlTable = Invoke-Sqlcmd -ServerInstance $Instance -Database $Database -Query $tableQuery
+    if ($sqlTable.TABLE_NAME -eq $Table){
+        Write-Host "Table: $Table already exist"
+    }else{
+        Write-Host "Creating table: $Table in Database: $Database"
+        $logTextBox.Text += "Creating table: $Table in Database: $Database"
+        $logTextBox.Text += "`n" | Out-String
+        $createtableQuery = "CREATE TABLE $Table (ID INT IDENTITY(1,1) NOT NULL, Username NVARCHAR(256), EncryptedInfo NVARCHAR(MAX), Date DATETIME2(7))"
+        $setPrimaryKeyQuery = "ALTER TABLE $Table ADD CONSTRAINT PK_$Table PRIMARY KEY(Id)"
+        Invoke-Sqlcmd -ServerInstance $Instance -Database $Database -Query $createtableQuery
+        Invoke-Sqlcmd -ServerInstance $Instance -Database $Database -Query $setPrimaryKeyQuery
+    }
+
 }
 
 function Clear-YubiInfoBox(){
@@ -375,9 +391,29 @@ function Get-ADCertificate($userName){
         $logTextBox.Text += "Latest YubiKey cert in AD: " + $SerialNumber
     }else{
         $adCertOutputLabel.Text = "N/A"
+    }    
+}
+
+function Remove-ADCertificate($userName, $serialNumber){
+    if (!(Get-Module ActiveDirectory)){
+        $logTextBox.Text += "`n" | Out-String
+        $logTextBox.Text += "Active Directory Module not loaded!" | Out-String
+        $adCertOutputLabel.Text = "N/A"
+        Set-YubiImage Red
+        return
+    }else{
+        $user = Get-ADUser -Filter {SamAccountName -eq $userName} -Properties displayName, Certificates
     }
     
-    
+    foreach ($usercert in $user.Certificates){
+        $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2 $usercert
+	    if ($cert.SerialNumber -eq $serialNumber){
+            Write-Host "Removing Certificate with serialnumber: $($serialNumber) from AD"
+            Set-ADUser -Identity $userName -Certificates @{ Remove = $cert}
+        }
+    }
+        
+
 }
 
 function Get-SQLData{
@@ -386,7 +422,7 @@ function Get-SQLData{
     $serialOutputLabel.Visible = $true
     $Instance = $config.Configuration.DBServer
     $Database = $config.Configuration.Database
-    $Table = "Enrolled_YubiKeys"
+    $Table = $config.Configuration.DBTable
     $db = Get-SqlDatabase -ServerInstance $Instance -Name $Database
 
     if(!($db)){
@@ -399,9 +435,10 @@ function Get-SQLData{
 
     $userName = $userNameTextBox1.Text
     $Query = "select * from dbo.$Table WHERE USERNAME='$userName'"
-    $EncryptedKeys = Invoke-Sqlcmd -ServerInstance $Instance -Database $Database -Query $Query # -OutPutAs DataTables
+    $EncryptedKeys = Invoke-Sqlcmd -ServerInstance $Instance -Database $Database -Query $Query
     if(!($EncryptedKeys)){
-        $logTextBox.Text = "No YubiKey information found on User: $userName"
+        $logTextBox.Text = "No YubiKey information found on User: $userName in database: $Database"
+        $deleteButton.Enabled = $false
         Set-YubiImage Red
         return
     }
@@ -412,10 +449,11 @@ function Get-SQLData{
     $DecryptedKeys.Columns.Add("Cert") | Out-Null
     $DecryptedKeys.Columns.Add("Date") | Out-Null
     $DecryptedKeys.Columns.Add("Username") | Out-Null
+    $DecryptedKeys.Columns.Add("ID") | Out-Null
     
     Foreach ($Encryptedkey in $EncryptedKeys){
         $DecryptedInfo = (Get-EncryptedData -key $key -data $Encryptedkey.EncryptedInfo).Split(";")
-        $DecryptedKeys.Rows.Add($DecryptedInfo[0],$DecryptedInfo[1],$DecryptedInfo[2],$DecryptedInfo[3],$EncryptedKey.Date, $EncryptedKey.Username) | Out-Null
+        $DecryptedKeys.Rows.Add($DecryptedInfo[0],$DecryptedInfo[1],$DecryptedInfo[2],$DecryptedInfo[3],$EncryptedKey.Date, $EncryptedKey.Username, $EncryptedKey.ID) | Out-Null
     }
     ## Check if Datatable has more than one rows, if so unhide Combobox
     if($DecryptedKeys.Rows.Count -gt 1){
@@ -440,6 +478,7 @@ function Get-SQLData{
 
     ## Get Certificate information from AD
     Get-ADCertificate $userName
+    $deleteButton.Enabled = $true
 
     Set-YubiImage Green
 }
@@ -454,12 +493,28 @@ function Get-YubiKeyInfo(){
         if($useDatabase){
             $logTextBox.Text += "Fetching data from Database"
             $sqlData = Get-SQLData
-            return $sqlData
+            ## return $sqlData
         }
         if($useAD){
             $adData = Get-ADData
             return $adData
         }
+        ## Read info from YubiKey
+        $ykman = $config.Configuration.Ykman
+        $pivinfo = & $ykman piv info
+        if($LASTEXITCODE -ne 0){
+	        Write-Host "No YubiKey detected!" -ForegroundColor Red
+            $pivinfo = "No YubiKey detected, unable to read data."
+        }
+        $logTextBox.Text += "`n" | Out-String
+        $logTextBox.Text += "`n" | Out-String
+        $logTextBox.Text += "Inserted YubiKey Piv Info" | Out-String
+        $logTextBox.Text += "`n" | Out-String
+        $logTextBox.Text += $pivinfo | Out-String
+        $logTextBox.Text += "`n`n" | Out-String
+
+
+
     }else{
         $logTextBox.Text += "Input username!" | Out-String
         Set-YubiImage Red
@@ -590,20 +645,61 @@ function Confirm-ADUser(){
 
 }
 
-function Write-SQLData($userName,$encryptedInfo){
-    $Date = Get-Date
+function Write-SQLData($userName, $encryptedInfo){
+    $Date = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss.fffffff")
     $Instance = $config.Configuration.DBServer
     $Database = $config.Configuration.Database
-    $Table = "Enrolled_YubiKeys"
+    $Table = $config.Configuration.DBTable
 
-    $Insert = @(
-        [ordered]@{
-        Username = $userName
-        EncryptedInfo = $encryptedInfo
-        Date = $Date
-        })
+    $insertQuery = "INSERT INTO $Table (Username, EncryptedInfo, Date) VALUES ('$userName','$encryptedInfo','$Date')"
+    Invoke-SqlCmd -ServerInstance $Instance -Database $Database -Query $insertQuery
 
-        $Insert.Foreach({$_.ForEach({[PSCustomObject]$_}) | Write-SqlTableData -ServerInstance $Instance -DatabaseName $Database -SchemaName dbo -TableName $Table -Force})
+}
+
+function Remove-SQLData(){
+    $keyID = $selectedKey.ID
+    $certSerial = $selectedKey.Cert
+    $Instance = $config.Configuration.DBServer
+    $Database = $config.Configuration.Database
+    $Table = $config.Configuration.DBTable
+    $DeleteQuery = "DELETE FROM dbo.$Table WHERE ID = $keyID"
+    $UserName = $userNameTextBox1.Text
+
+    if($keyID){
+        $msgBoxInputDelete = [System.Windows.MessageBox]::Show("Are you sure you want to delete database-entry with id: $($keyID) and revoke certificate with serialnumber: $($certSerial)?",'Delete Warning','YesNo','Warning')
+
+        switch ($msgBoxInputDelete){
+            'Yes'
+            {
+                Write-Host "Deleting row with ID: $keyID"
+                Invoke-Sqlcmd -ServerInstance $Instance -Database $Database -Query $DeleteQuery
+                Revoke-Certificate $certSerial
+                Remove-ADCertificate $UserName $certSerial
+                Set-YubiImage Default
+                Get-YubiKeyInfo
+
+            }
+            'No'
+            {
+                Write-Warning "Delete aborted!"
+                Set-YubiImage Red
+            }
+
+        }
+    }else{
+        $msgBoxNoUser = [System.Windows.MessageBox]::Show('No YubiKey selected!','No YubiKey','Ok','Warning')
+    }
+
+}
+
+function Revoke-Certificate($serialNumber){
+    $CertAdmin = New-Object -ComObject CertificateAuthority.Admin
+    $Reason = 0
+    $CAConfig = $Config.Configuration.CAServer + "\" + $Config.Configuration.CAName
+    $RevokationDate = (Get-Date).ToUniversalTime()
+    Write-Host "Revoking $($serialNumber) using $($CAConfig) with reason: $Reason and Date: $RevokationDate"
+    $CertAdmin.RevokeCertificate($CAConfig,$serialNumber,$Reason,$RevokationDate)
+
 }
 
 function Write-YubiKey($user, $userName){
@@ -643,14 +739,14 @@ function Write-YubiKey($user, $userName){
     $puk = (Get-Random -Minimum 10000000 -Maximum 99999999).ToString("00000000")
 
  
-    & $ykman piv change-puk -p 12345678 -n $puk | Out-Null
+    & $ykman piv access change-puk -p 12345678 -n $puk | Out-Null
     if($LASTEXITCODE -ne 0){
 	    Write-Host "Error setting new PUK" -ForegroundColor Red
         $logTextBox.Text += "Error setting new PUK!" | Out-String
         Set-YubiImage Red
 	    return
     }
-    & $ykman piv change-pin -P 123456 -n $pin | Out-Null
+    & $ykman piv access change-pin -P 123456 -n $pin | Out-Null
     if($LASTEXITCODE -ne 0){
 	    Write-Host "Error setting new PIN" -ForegroundColor Red
         $logTextBox.Text += "Error setting new PIN!" | Out-String
@@ -661,7 +757,7 @@ function Write-YubiKey($user, $userName){
     Write-Host "`n"
 
     $pinOutputLabel.Text = $pin
-    $userOutputLabel.Text = $userName
+    #$userOutputLabel.Text = $userName
     $serialOutputLabel.Text = $serial
     $pukOutputLabel.Text = $puk
 
@@ -733,6 +829,7 @@ function Write-YubiKey($user, $userName){
         if($dbWrite){
             $dbConnection = Check-DBConnection
             if($dbConnection){
+            $Database = $config.Configuration.Database
                 Write-Host "Writing Encrypted string to SQL DB." -foregroundcolor Yellow
                 $logTextBox.Text += "`n" | Out-String
                 $logTextBox.Text += "Writing Encrypted string to SQL DB: $Database`n" | Out-String
@@ -823,6 +920,8 @@ if($useDatabase){
     $dbConnection = Check-DBConnection
     if(!($dbConnection)){
         Set-YubiImage Red
+    }else{
+
     }
 }
 
