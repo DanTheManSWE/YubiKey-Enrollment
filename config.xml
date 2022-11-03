@@ -1,16 +1,21 @@
-﻿<Configuration>
-    <Ykman>C:\Program Files\Yubico\YubiKey Manager\ykman.exe</Ykman>
-    <SignerCert></SignerCert>
-    <CertTemplate>YubiKey</CertTemplate>
-    <WriteToAD>false</WriteToAD>
-    <ADAttribute>houseIdentifier</ADAttribute>
-    <DeleteOTP>false</DeleteOTP>
-    <DeleteCachedSC>false</DeleteCachedSC>
-    <WriteLog>true</WriteLog>
-    <WriteToDB>true</WriteToDB>
-    <DBServer>DBINSTANCE</DBServer>
-    <Database>YubiKeyInfo</Database>
-    <DBTable>YubiData</DBTable>
-    <UseDatabase>false</UseDatabase>
-    <UseAD>false</UseAD>
+<?xml version="1.0"?>
+<Configuration>
+  <Ykman>C:\Program Files\Yubico\YubiKey Manager\ykman.exe</Ykman>
+  <SignerCert>ABCDEFGHeee</SignerCert>
+  <CertTemplate>YubiKey</CertTemplate>
+  <WriteToAD>false</WriteToAD>
+  <ADAttribute>
+  </ADAttribute>
+  <DeleteOTP>false</DeleteOTP>
+  <DeleteCachedSC>false</DeleteCachedSC>
+  <WriteLog>true</WriteLog>
+  <WriteToDB>false</WriteToDB>
+  <DBServer>dbserver\instance</DBServer>
+  <Database>YubiKeyInfo</Database>
+  <DBTable>YubiData</DBTable>
+  <UseDatabase>false</UseDatabase>
+  <UseAD>false</UseAD>
+  <CAServer>ca01.domain.net</CAServer>
+  <CAName>Domain-Enterprise-CA-V0</CAName>
+  <FirstRun>false</FirstRun>
 </Configuration>

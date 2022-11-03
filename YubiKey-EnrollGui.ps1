@@ -17,6 +17,7 @@ if (Test-Path "$PSScriptRoot\config.xml"){
 $script:selectedKey = ""
 [System.Windows.Forms.Application]::EnableVisualStyles()
 
+##Main Window
 $Form                            = New-Object system.Windows.Forms.Form
 $Form.ClientSize                 = '570,510'
 $Form.MinimumSize                = '570,510'
@@ -25,26 +26,33 @@ $Form.TopMost                    = $false
 $Form.Icon                       = "$PSScriptRoot\Resources\YubiKey-5-NFC.ico"
 $Form.StartPosition              = 'CenterScreen'
 
-$userNameTextBox1                = New-Object system.Windows.Forms.TextBox
-$userNameTextBox1.multiline      = $false
-$userNameTextBox1.width          = 240
-$userNameTextBox1.height         = 20
-$userNameTextBox1.location       = New-Object System.Drawing.Point(15,30)
-$userNameTextBox1.Font           = 'Microsoft Sans Serif,10'
+$userNameTextBox                = New-Object system.Windows.Forms.TextBox
+$userNameTextBox.multiline      = $false
+$userNameTextBox.width          = 200
+$userNameTextBox.height         = 20
+$userNameTextBox.location       = New-Object System.Drawing.Point(15,30)
+$userNameTextBox.Font           = 'Microsoft Sans Serif,10'
 
 $enrollButton                    = New-Object system.Windows.Forms.Button
 $enrollButton.text               = "Enroll Smartcard"
 $enrollButton.width              = 115
 $enrollButton.height             = 30
-$enrollButton.location           = New-Object System.Drawing.Point(280,25)
+$enrollButton.location           = New-Object System.Drawing.Point(230,25)
 $enrollButton.Font               = 'Microsoft Sans Serif,10'
 
 $logButton                       = New-Object system.Windows.Forms.Button
 $logButton.text                  = "YubiKey Info"
 $logButton.width                 = 125
 $logButton.height                = 30
-$logButton.location              = New-Object System.Drawing.Point(420,25)
+$logButton.location              = New-Object System.Drawing.Point(355,25)
 $logButton.Font                  = 'Microsoft Sans Serif,10'
+
+$settingsButton                  = New-Object system.Windows.Forms.Button
+$settingsButton.text             = "Settings"
+$settingsButton.width            = 70
+$settingsButton.height           = 30
+$settingsButton.location         = New-Object System.Drawing.Point(490,25)
+$settingsButton.Font             = 'Microsoft Sans Serif,10'
 
 $img = [System.Drawing.Image]::Fromfile("$PSScriptRoot\Resources\YubiKey-5-NFC_Default.png")
 $PictureBox1                     = New-Object system.Windows.Forms.PictureBox
@@ -198,14 +206,272 @@ $logTextBox.location             = New-Object System.Drawing.Point(15,250)
 $logTextBox.Font                 = 'Consolas,10'
 $logTextBox.ScrollBars           = "Vertical"
 
-$Form.controls.AddRange(@($userNameTextBox1,$enrollButton,$userNameLabel,$logButton,$PictureBox1,$Groupbox1,$logTextBox,$logLabel))
+## Settings Window
+$SettingsForm                    = New-Object system.Windows.Forms.Form
+$SettingsForm.ClientSize         = '500,530'
+$SettingsForm.MinimumSize        = '500,530'
+$SettingsForm.text               = "YubiKey Enrollment Settings"
+$SettingsForm.TopMost            = $true
+$SettingsForm.Icon               = "$PSScriptRoot\Resources\YubiKey-5-NFC.ico"
+$SettingsForm.StartPosition      = 'CenterParent'
+$SettingsForm.FormBorderStyle    = 'FixedSingle'
+$SettingsForm.MaximizeBox        = $false
+$SettingsForm.MinimizeBox        = $false
+
+$ykmanLabel                      = New-Object system.Windows.Forms.Label
+$ykmanLabel.text                 = "Ykman path:"
+$ykmanLabel.AutoSize             = $true
+$ykmanLabel.width                = 40
+$ykmanLabel.height               = 10
+$ykmanLabel.location             = New-Object System.Drawing.Point(10,33)
+$ykmanLabel.Font                 = 'Microsoft Sans Serif,10'
+
+$ykmanTextBox                = New-Object system.Windows.Forms.TextBox
+$ykmanTextBox.multiline      = $false
+$ykmanTextBox.width          = 350
+$ykmanTextBox.height         = 20
+$ykmanTextBox.location       = New-Object System.Drawing.Point(130,30)
+$ykmanTextBox.Font           = 'Microsoft Sans Serif,10'
+
+$signCertLabel                      = New-Object system.Windows.Forms.Label
+$signCertLabel.text                 = "Signer Certificate:"
+$signCertLabel.AutoSize             = $true
+$signCertLabel.width                = 35
+$signCertLabel.height               = 10
+$signCertLabel.location             = New-Object System.Drawing.Point(10,65)
+$signCertLabel.Font                 = 'Microsoft Sans Serif,10'
+
+$signCertTextBox                = New-Object system.Windows.Forms.TextBox
+$signCertTextBox.multiline      = $false
+$signCertTextBox.width          = 350
+$signCertTextBox.height         = 20
+$signCertTextBox.location       = New-Object System.Drawing.Point(130,62)
+$signCertTextBox.Font           = 'Microsoft Sans Serif,10'
+
+$certTemplateLabel                      = New-Object system.Windows.Forms.Label
+$certTemplateLabel.text                 = "Cert Template:"
+$certTemplateLabel.AutoSize             = $true
+$certTemplateLabel.width                = 35
+$certTemplateLabel.height               = 10
+$certTemplateLabel.location             = New-Object System.Drawing.Point(10,97)
+$certTemplateLabel.Font                 = 'Microsoft Sans Serif,10'
+
+$certTemplateTextBox                = New-Object system.Windows.Forms.TextBox
+$certTemplateTextBox.multiline      = $false
+$certTemplateTextBox.width          = 350
+$certTemplateTextBox.height         = 20
+$certTemplateTextBox.location       = New-Object System.Drawing.Point(130,94)
+$certTemplateTextBox.Font           = 'Microsoft Sans Serif,10'
+
+$writeADLabel                      = New-Object system.Windows.Forms.Label
+$writeADLabel.text                 = "Write to AD:"
+$writeADLabel.AutoSize             = $true
+$writeADLabel.width                = 35
+$writeADLabel.height               = 10
+$writeADLabel.location             = New-Object System.Drawing.Point(10,129)
+$writeADLabel.Font                 = 'Microsoft Sans Serif,10'
+
+$writeADCheckbox                = New-Object system.Windows.Forms.CheckBox
+$writeADCheckbox.location       = New-Object System.Drawing.Point(130,128)
+$writeADCheckbox.Width            = 20
+$writeADCheckbox.Height            = 20
+
+$readADLabel                      = New-Object system.Windows.Forms.Label
+$readADLabel.text                 = "Read from AD:"
+$readADLabel.AutoSize             = $true
+$readADLabel.width                = 35
+$readADLabel.height               = 10
+$readADLabel.location             = New-Object System.Drawing.Point(170,129)
+$readADLabel.Font                 = 'Microsoft Sans Serif,10'
+
+$readADCheckbox                   = New-Object system.Windows.Forms.CheckBox
+$readADCheckbox.location          = New-Object System.Drawing.Point(270,128)
+$readADCheckbox.Width             = 20
+$readADCheckbox.Height            = 20
+
+$adAttributeLabel                      = New-Object system.Windows.Forms.Label
+$adAttributeLabel.text                 = "AD Attribute:"
+$adAttributeLabel.AutoSize             = $true
+$adAttributeLabel.width                = 40
+$adAttributeLabel.height               = 10
+$adAttributeLabel.location             = New-Object System.Drawing.Point(10,161)
+$adAttributeLabel.Font                 = 'Microsoft Sans Serif,10'
+
+$adAttributeTextBox                = New-Object system.Windows.Forms.TextBox
+$adAttributeTextBox.multiline      = $false
+$adAttributeTextBox.width          = 350
+$adAttributeTextBox.height         = 20
+$adAttributeTextBox.location       = New-Object System.Drawing.Point(130,158)
+$adAttributeTextBox.Font           = 'Microsoft Sans Serif,10'
+
+$deleteOTPLabel                      = New-Object system.Windows.Forms.Label
+$deleteOTPLabel.text                 = "Delete OTP:"
+$deleteOTPLabel.AutoSize             = $true
+$deleteOTPLabel.width                = 35
+$deleteOTPLabel.height               = 10
+$deleteOTPLabel.location             = New-Object System.Drawing.Point(10,193)
+$deleteOTPLabel.Font                 = 'Microsoft Sans Serif,10'
+
+$deleteOTPCheckbox                = New-Object system.Windows.Forms.CheckBox
+$deleteOTPCheckbox.location       = New-Object System.Drawing.Point(130,192)
+$deleteOTPCheckbox.Width             = 20
+$deleteOTPCheckbox.Height            = 20
+
+$deleteCacheLabel                      = New-Object system.Windows.Forms.Label
+$deleteCacheLabel.text                 = "Delete Cache:"
+$deleteCacheLabel.AutoSize             = $true
+$deleteCacheLabel.width                = 35
+$deleteCacheLabel.height               = 10
+$deleteCacheLabel.location             = New-Object System.Drawing.Point(10,225)
+$deleteCacheLabel.Font                 = 'Microsoft Sans Serif,10'
+
+$deleteCacheCheckbox                = New-Object system.Windows.Forms.CheckBox
+$deleteCacheCheckbox.location       = New-Object System.Drawing.Point(130,224)
+$deleteCacheCheckbox.Width             = 20
+$deleteCacheCheckbox.Height            = 20
+
+$writeLogLabel                      = New-Object system.Windows.Forms.Label
+$writeLogLabel.text                 = "Enable Logging:"
+$writeLogLabel.AutoSize             = $true
+$writeLogLabel.width                = 35
+$writeLogLabel.height               = 10
+$writeLogLabel.location             = New-Object System.Drawing.Point(10,257)
+$writeLogLabel.Font                 = 'Microsoft Sans Serif,10'
+
+$writeLogCheckbox                = New-Object system.Windows.Forms.CheckBox
+$writeLogCheckbox.location       = New-Object System.Drawing.Point(130,256)
+$writeLogCheckbox.Width             = 20
+$writeLogCheckbox.Height            = 20
+
+$writeDBLabel                      = New-Object system.Windows.Forms.Label
+$writeDBLabel.text                 = "Write to DB:"
+$writeDBLabel.AutoSize             = $true
+$writeDBLabel.width                = 35
+$writeDBLabel.height               = 10
+$writeDBLabel.location             = New-Object System.Drawing.Point(10,289)
+$writeDBLabel.Font                 = 'Microsoft Sans Serif,10'
+
+$writeDBCheckbox                   = New-Object system.Windows.Forms.CheckBox
+$writeDBCheckbox.location          = New-Object System.Drawing.Point(130,288)
+$writeDBCheckbox.Width             = 20
+$writeDBCheckbox.Height            = 20
+
+$readDBLabel                      = New-Object system.Windows.Forms.Label
+$readDBLabel.text                 = "Read from DB:"
+$readDBLabel.AutoSize             = $true
+$readDBLabel.width                = 35
+$readDBLabel.height               = 10
+$readDBLabel.location             = New-Object System.Drawing.Point(170,289)
+$readDBLabel.Font                 = 'Microsoft Sans Serif,10'
+
+$readDBCheckbox                   = New-Object system.Windows.Forms.CheckBox
+$readDBCheckbox.location          = New-Object System.Drawing.Point(270,288)
+$readDBCheckbox.Width             = 20
+$readDBCheckbox.Height            = 20
+
+$dbInstanceLabel                      = New-Object system.Windows.Forms.Label
+$dbInstanceLabel.text                 = "DB Instance:"
+$dbInstanceLabel.AutoSize             = $true
+$dbInstanceLabel.width                = 40
+$dbInstanceLabel.height               = 10
+$dbInstanceLabel.location             = New-Object System.Drawing.Point(10,321)
+$dbInstanceLabel.Font                 = 'Microsoft Sans Serif,10'
+
+$dbInstanceTextBox                = New-Object system.Windows.Forms.TextBox
+$dbInstanceTextBox.multiline      = $false
+$dbInstanceTextBox.width          = 350
+$dbInstanceTextBox.height         = 20
+$dbInstanceTextBox.location       = New-Object System.Drawing.Point(130,318)
+$dbInstanceTextBox.Font           = 'Microsoft Sans Serif,10'
+
+$dbLabel                      = New-Object system.Windows.Forms.Label
+$dbLabel.text                 = "Database:"
+$dbLabel.AutoSize             = $true
+$dbLabel.width                = 40
+$dbLabel.height               = 10
+$dbLabel.location             = New-Object System.Drawing.Point(10,353)
+$dbLabel.Font                 = 'Microsoft Sans Serif,10'
+
+$dbTextBox                = New-Object system.Windows.Forms.TextBox
+$dbTextBox.multiline      = $false
+$dbTextBox.width          = 350
+$dbTextBox.height         = 20
+$dbTextBox.location       = New-Object System.Drawing.Point(130,350)
+$dbTextBox.Font           = 'Microsoft Sans Serif,10'
+
+$dbTableLabel                      = New-Object system.Windows.Forms.Label
+$dbTableLabel.text                 = "DB Table:"
+$dbTableLabel.AutoSize             = $true
+$dbTableLabel.width                = 40
+$dbTableLabel.height               = 10
+$dbTableLabel.location             = New-Object System.Drawing.Point(10,385)
+$dbTableLabel.Font                 = 'Microsoft Sans Serif,10'
+
+$dbTableTextBox                = New-Object system.Windows.Forms.TextBox
+$dbTableTextBox.multiline      = $false
+$dbTableTextBox.width          = 350
+$dbTableTextBox.height         = 20
+$dbTableTextBox.location       = New-Object System.Drawing.Point(130,382)
+$dbTableTextBox.Font           = 'Microsoft Sans Serif,10'
+
+$caServerLabel                      = New-Object system.Windows.Forms.Label
+$caServerLabel.text                 = "CA Server:"
+$caServerLabel.AutoSize             = $true
+$caServerLabel.width                = 40
+$caServerLabel.height               = 10
+$caServerLabel.location             = New-Object System.Drawing.Point(10,417)
+$caServerLabel.Font                 = 'Microsoft Sans Serif,10'
+
+$caServerTextBox                  = New-Object system.Windows.Forms.TextBox
+$caServerTextBox.multiline        = $false
+$caServerTextBox.width            = 350
+$caServerTextBox.height           = 20
+$caServerTextBox.location         = New-Object System.Drawing.Point(130,415)
+$caServerTextBox.Font             = 'Microsoft Sans Serif,10'
+
+$caNameLabel                      = New-Object system.Windows.Forms.Label
+$caNameLabel.text                 = "CA Name:"
+$caNameLabel.AutoSize             = $true
+$caNameLabel.width                = 40
+$caNameLabel.height               = 10
+$caNameLabel.location             = New-Object System.Drawing.Point(10,449)
+$caNameLabel.Font                 = 'Microsoft Sans Serif,10'
+
+$caNameTextBox                    = New-Object system.Windows.Forms.TextBox
+$caNameTextBox.multiline          = $false
+$caNameTextBox.width              = 350
+$caNameTextBox.height             = 20
+$caNameTextBox.location           = New-Object System.Drawing.Point(130,447)
+$caNameTextBox.Font               = 'Microsoft Sans Serif,10'
+
+
+$saveButton                      = New-Object system.Windows.Forms.Button
+$saveButton.text                 = "Save"
+$saveButton.width                = 70
+$saveButton.height               = 30
+$saveButton.location             = New-Object System.Drawing.Point(320,481)
+$saveButton.Font                 = 'Microsoft Sans Serif,10'
+
+$cancelButton                      = New-Object system.Windows.Forms.Button
+$cancelButton.text                 = "Cancel"
+$cancelButton.width                = 80
+$cancelButton.height               = 30
+$cancelButton.location             = New-Object System.Drawing.Point(400,481)
+$cancelButton.Font                 = 'Microsoft Sans Serif,10'
+
+$Form.controls.AddRange(@($userNameTextBox,$enrollButton,$userNameLabel,$logButton,$PictureBox1,$Groupbox1,$logTextBox,$logLabel,$settingsButton))
 $Groupbox1.controls.AddRange(@($certOutputLabel,$certLabel,$serialLabel,$pinLabel,$pukLabel,$yubiKeycomboBox1,$serialOutputLabel,$pinOutputLabel,$pukOutputLabel,$dateLabel,$dateOutputLabel,$adCertLabel,$adCertOutputLabel,$deleteButton))
+
+$SettingsForm.controls.AddRange(@($ykmanLabel,$ykmanTextBox,$signCertLabel,$signCertTextBox,$certTemplateLabel,$certTemplateTextBox,$writeADLabel,$writeADCheckbox,$readADLabel,$readADCheckbox,$adAttributeLabel,$adAttributeTextBox,$deleteOTPLabel,$deleteOTPCheckbox,$deleteOTPLabel,$deleteOTPCheckbox,$deleteCacheLabel,$deleteCacheCheckbox,$writeLogLabel,$writeLogCheckbox,$writeDBLabel,$writeDBCheckbox,$readDBLabel,$readDBCheckbox,$dbInstanceLabel,$dbInstanceTextBox,$dbLabel,$dbTextBox,$dbTableLabel,$dbTableTextBox,$caServerLabel,$caServerTextBox,$caNameLabel,$caNameTextBox,$saveButton,$cancelButton))
 
 $enrollButton.Add_Click({Confirm-ADUser})
 $logButton.Add_Click({Get-YubiKeyInfo})
 $deleteButton.Add_Click({Remove-SQLData})
+$settingsButton.Add_Click({Show-Settings})
+$saveButton.Add_Click({Save-Settings})
+$cancelButton.Add_Click({$SettingsForm.Close()})
 
-$userNameTextBox1.Add_KeyDown({
+$userNameTextBox.Add_KeyDown({
     if ($_.KeyCode -eq "Enter"){
         Confirm-ADUser
     }
@@ -227,6 +493,60 @@ $yubiKeycomboBox1.Add_SelectedIndexChanged(
 #Write your logic code here
 
 $script:logFile = "$PSScriptRoot\Logs\YubiKey_" + [string](get-date -Format yyyyMMdd) + ".log"
+
+function Convert-CheckState($stateInput){
+    if ($stateInput -eq "Unchecked"){
+        $stateOutput = "false"
+    }elseif($stateInput -eq "Checked"){
+        $stateOutput = "true"
+    }else{
+        $stateOutput = "false"
+    }
+
+    return $stateOutput
+}
+
+function Show-Settings(){
+    $ykmanTextBox.Text = $config.Configuration.Ykman
+    $signCertTextBox.Text = $config.Configuration.SignerCert
+    $certTemplateTextBox.Text = $config.Configuration.CertTemplate
+    $writeADCheckbox.Checked = [System.Convert]::ToBoolean($config.Configuration.WriteToAD)
+    $deleteOTPCheckbox.Checked = [System.Convert]::ToBoolean($config.Configuration.DeleteOTP)
+    $deleteCacheCheckbox.Checked = [System.Convert]::ToBoolean($config.Configuration.DeleteCachedSC)
+    $writeLogCheckbox.Checked = [System.Convert]::ToBoolean($config.Configuration.WriteLog)
+    $writeDBCheckbox.Checked = [System.Convert]::ToBoolean($config.Configuration.WriteToDB)
+    $dbInstanceTextBox.Text = $config.Configuration.DBServer
+    $dbTextBox.Text = $config.Configuration.Database
+    $dbTableTextBox.Text = $config.Configuration.DBTable
+    $readDBCheckbox.Checked = [System.Convert]::ToBoolean($config.Configuration.UseDatabase)
+    $readADCheckbox.Checked = [System.Convert]::ToBoolean($config.Configuration.UseAD)      
+    $caServerTextBox.Text = $config.Configuration.CAServer
+    $caNameTextBox.Text = $config.Configuration.CAName  
+    [void]$SettingsForm.ShowDialog()
+
+}
+
+function Save-Settings(){
+    $config.Configuration.Ykman = $ykmanTextBox.Text
+    $config.Configuration.SignerCert = $signCertTextBox.Text
+    $config.Configuration.CertTemplate = $certTemplateTextBox.Text
+    $config.Configuration.WriteToAD = Convert-CheckState($writeADCheckbox.CheckState)
+    $config.Configuration.ADAttribute = $adAttributeTextBox.Text
+    $config.Configuration.DeleteOTP = Convert-CheckState($deleteOTPCheckbox.CheckState)
+    $config.Configuration.DeleteCachedSC = Convert-CheckState($deleteCacheCheckbox.CheckState)
+    $config.Configuration.WriteLog = Convert-CheckState($writeLogCheckbox.CheckState)
+    $config.Configuration.WriteToDB = Convert-CheckState($writeDBCheckbox.CheckState)
+    $config.Configuration.DBServer = $dbInstanceTextBox.Text
+    $config.Configuration.Database = $dbTextBox.Text
+    $config.Configuration.DBTable = $dbTableTextBox.Text
+    $config.Configuration.UseDatabase = Convert-CheckState($readDBCheckbox.CheckState)
+    $config.Configuration.UseAD = Convert-CheckState($readADCheckbox.CheckState)
+    $config.Configuration.CAServer = $caServerTextBox.Text
+    $config.Configuration.CAName = $caNameTextBox.Text
+    $config.Configuration.FirstRun = "false"
+    $config.Save($configFile)
+    [void]$SettingsForm.Close()
+}
 
 function New-LogEntry($entry, $first){
     [Boolean]$writeLog = [System.Convert]::ToBoolean($config.Configuration.WriteLog)
@@ -302,7 +622,7 @@ function Get-EncryptedData {
 	ForEach-Object {[Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($_))}
 }
 
-function Check-DBConnection(){
+function Get-DBConnection(){
     $Instance = $config.Configuration.DBServer
     $Database = $config.Configuration.Database
     $db = Get-SqlDatabase -ServerInstance $Instance -Name $Database
@@ -318,11 +638,11 @@ function Check-DBConnection(){
     $logTextBox.Text += "Connection to $Database on Instance: $Instance established."
     $logTextBox.Text += "`n" | Out-String
     ## Create DBTable if it doesn't exist
-    Create-DBTable
+    New-DBTable
     return $true
 }
 
-function Create-DBTable{
+function New-DBTable{
     $Instance = $config.Configuration.DBServer
     $Database = $config.Configuration.Database
     $Table = $config.Configuration.DBTable
@@ -342,7 +662,7 @@ function Create-DBTable{
 
 }
 
-function Clear-YubiInfoBox(){
+function Clear-YubiInfoBox{
 #    $userOutputLabel.Text = ""
     $serialOutputLabel.Text = ""
     $pinOutputLabel.Text = ""
@@ -433,7 +753,7 @@ function Get-SQLData{
         return
     }
 
-    $userName = $userNameTextBox1.Text
+    $userName = $userNameTextBox.Text
     $Query = "select * from dbo.$Table WHERE USERNAME='$userName'"
     $EncryptedKeys = Invoke-Sqlcmd -ServerInstance $Instance -Database $Database -Query $Query
     if(!($EncryptedKeys)){
@@ -486,18 +806,18 @@ function Get-SQLData{
 function Get-YubiKeyInfo(){
     Clear-YubiInfoBox
     $logTextBox.Text = ""
-    $UserName = $userNameTextBox1.Text
+    $UserName = $userNameTextBox.Text
     [Boolean]$useDatabase = [System.Convert]::ToBoolean($config.Configuration.UseDatabase)
     [Boolean]$useAD = [System.Convert]::ToBoolean($config.Configuration.UseAD)   
     if($UserName){
         if($useDatabase){
             $logTextBox.Text += "Fetching data from Database"
-            $sqlData = Get-SQLData
+            Get-SQLData
             ## return $sqlData
         }
         if($useAD){
-            $adData = Get-ADData
-            return $adData
+            Get-ADData
+            ## return $adData
         }
         ## Read info from YubiKey
         $ykman = $config.Configuration.Ykman
@@ -531,7 +851,12 @@ function Get-ADData(){
         Set-YubiImage Red
         return
     }else{
-        $user = Get-ADUser -Filter {SamAccountName -eq $userName} -Properties $adAttribute, displayName, Certificates
+        if($config.Configuration.ADAttribute -ne ""){
+            $user = Get-ADUser -Filter {SamAccountName -eq $userName} -Properties $adAttribute, displayName, Certificates
+        }else{
+            $user = Get-ADUser -Filter {SamAccountName -eq $userName} -Properties displayName, Certificates
+        }
+        
     }
     $adInfo += $user | Select-Object -ExpandProperty $adAttribute
     if ($user){
@@ -582,7 +907,7 @@ function Get-ADData(){
 
 function Confirm-ADUser(){
     $logTextBox.Text = ""
-    $userName = $userNameTextBox1.Text
+    $userName = $userNameTextBox.Text
     Clear-YubiInfoBox
     $adAttribute = $config.Configuration.ADAttribute
     if($userName){
@@ -663,9 +988,9 @@ function Remove-SQLData(){
     $Database = $config.Configuration.Database
     $Table = $config.Configuration.DBTable
     $DeleteQuery = "DELETE FROM dbo.$Table WHERE ID = $keyID"
-    $UserName = $userNameTextBox1.Text
+    $UserName = $userNameTextBox.Text
 
-    if($keyID){
+    if($keyID -ne ""){
         $msgBoxInputDelete = [System.Windows.MessageBox]::Show("Are you sure you want to delete database-entry with id: $($keyID) and revoke certificate with serialnumber: $($certSerial)?",'Delete Warning','YesNo','Warning')
 
         switch ($msgBoxInputDelete){
@@ -768,12 +1093,12 @@ function Write-YubiKey($user, $userName){
 
     try{	
         #Remove any existing cached Smart Card cert before enrolling new
-	[Boolean]$deleteCachedSC = [System.Convert]::ToBoolean($config.Configuration.DeleteCachedSC)
+	    [Boolean]$deleteCachedSC = [System.Convert]::ToBoolean($config.Configuration.DeleteCachedSC)
         if($deleteCachedSC){
-		$oldSmartcardcert = Get-ChildItem Cert:\CurrentUser\my | where-object {$_.EnhancedKeyUsageList -like "*Smart Card*"} 
-		Write-Host "Removing cached smart card certs!" -Foregroundcolor Yellow
+		    $oldSmartcardcert = Get-ChildItem Cert:\CurrentUser\my | where-object {$_.EnhancedKeyUsageList -like "*Smart Card*"} 
+		    Write-Host "Removing cached smart card certs!" -Foregroundcolor Yellow
         	$oldSmartcardcert | Remove-Item
-	}
+	    }
         $PKCS10 = New-Object -ComObject X509Enrollment.CX509CertificateRequestPkcs10
         $PKCS10.InitializeFromTemplateName(0x1,$templateName)
 
@@ -827,7 +1152,7 @@ function Write-YubiKey($user, $userName){
         }
         
         if($dbWrite){
-            $dbConnection = Check-DBConnection
+            $dbConnection = Get-DBConnection
             if($dbConnection){
             $Database = $config.Configuration.Database
                 Write-Host "Writing Encrypted string to SQL DB." -foregroundcolor Yellow
@@ -914,14 +1239,19 @@ if($Credentials){
     $key = Set-Key ($Credentials.GetNetworkCredential().Password).ToString()
 }
 
+[Boolean]$firstRun = [System.Convert]::ToBoolean($config.Configuration.FirstRun)
+if($firstRun){
+    Show-Settings
+}
+
 [Boolean]$useDatabase = [System.Convert]::ToBoolean($config.Configuration.UseDatabase)
 
 if($useDatabase){
-    $dbConnection = Check-DBConnection
+    $dbConnection = Get-DBConnection
     if(!($dbConnection)){
         Set-YubiImage Red
     }else{
-
+        Set-YubiImage Default
     }
 }
 
