@@ -17,5 +17,5 @@
   <UseAD>false</UseAD>
   <CAServer>ca01.domain.net</CAServer>
   <CAName>Domain-Enterprise-CA-V0</CAName>
-  <FirstRun>false</FirstRun>
+  <FirstRun>true</FirstRun>
 </Configuration>
