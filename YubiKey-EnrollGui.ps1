@@ -511,6 +511,7 @@ function Show-Settings(){
     $signCertTextBox.Text = $config.Configuration.SignerCert
     $certTemplateTextBox.Text = $config.Configuration.CertTemplate
     $writeADCheckbox.Checked = [System.Convert]::ToBoolean($config.Configuration.WriteToAD)
+    $adAttributeTextBox.Text = $config.Configuration.ADAttribute
     $deleteOTPCheckbox.Checked = [System.Convert]::ToBoolean($config.Configuration.DeleteOTP)
     $deleteCacheCheckbox.Checked = [System.Convert]::ToBoolean($config.Configuration.DeleteCachedSC)
     $writeLogCheckbox.Checked = [System.Convert]::ToBoolean($config.Configuration.WriteLog)
@@ -1044,19 +1045,24 @@ function Write-YubiKey($user, $userName){
 
     & $ykman piv reset -f | Out-Null
 
-    ## Delete OTP Passwords
-    [Boolean]$deleteOTP = [System.Convert]::ToBoolean($config.Configuration.DeleteOTP)
-    if($deleteOTP){
-	Write-Host "Deleting OTP!" -Foregroundcolor Yellow
-        & $ykman otp delete 1 -f | Out-Null
-        & $ykman otp delete 2 -f | Out-Null
-    }
-
     if($LASTEXITCODE -ne 0){
 	    Write-Host "Error resetting YubiKey, make sure YubiKey is inserted" -ForegroundColor Red
         $logTextBox.Text += "Error resetting YubiKey, make sure YubiKey is inserted" | Out-String
         Set-YubiImage Red
 	    return
+    }
+	
+	## Delete OTP Passwords
+    [Boolean]$deleteOTP = [System.Convert]::ToBoolean($config.Configuration.DeleteOTP)
+    if($deleteOTP){
+		Write-Host "Deleting OTP!" -Foregroundcolor Yellow
+		$logTextBox.Text += "Deleting OTP!`n`n" | Out-String
+        & $ykman otp delete 1 -f | Out-Null
+        & $ykman otp delete 2 -f | Out-Null
+    }
+	if($LASTEXITCODE -ne 0){
+	    Write-Host "Error deleting OTP, probably deleted already" -ForegroundColor Red
+        $logTextBox.Text += "Error deleting OTP, probably deleted already!" | Out-String
     }
 
     $serial = & $ykman list -s
